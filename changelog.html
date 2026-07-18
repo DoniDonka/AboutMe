@@ -40,7 +40,17 @@
         <div class="bento-card span-3">
             <div class="changelog-list">
                 <div class="changelog-version">
-                    <div class="changelog-badge current">v3.0.0</div>
+                    <div class="changelog-badge current">v3.1.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Firebase Auth (email/password) admin sign-in — replaces the client-side passcode gate</li>
+                        <li><span class="cl-tag changed">Changed</span> Hardened Firestore rules — contact messages &amp; dashboard writes are now admin-only (server-enforced)</li>
+                        <li><span class="cl-tag security">Security</span> Admin actions now require a real authenticated session, not a client-side check</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v3.0.0</div>
                     <div class="changelog-date">Jul 18, 2026</div>
                     <ul>
                         <li><span class="cl-tag added">Added</span> Full-screen site lock — passcode overlay that hides the whole site (🔒 in header / <code>lockscreen</code> command)</li>
@@ -129,6 +139,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="ui.js"></script>
     <script src="security.js"></script>
     <script src="features.js"></script>

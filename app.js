@@ -30,6 +30,15 @@ function initFirebase() {
             Core.SystemLogs.write('<span style="color:#22c55e;">✓</span> Firebase connected successfully.');
             console.log('[Firebase] Initialized successfully');
 
+            // Keep the admin panel in sync with Firebase Auth state
+            if (firebase.auth) {
+                firebase.auth().onAuthStateChanged(() => {
+                    if (typeof Security !== 'undefined' && Security.AdminGate) {
+                        Security.AdminGate.refreshUI();
+                    }
+                });
+            }
+
             // Start real-time listener
             initRealtimeSync();
         } else {

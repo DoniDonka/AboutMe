@@ -1,56 +1,62 @@
 rules_version = '2';
 
 // ============================================================
-// DONI | DEV - Firestore Security Rules (v3.0)
+// DONI | DEV - Firestore Security Rules (v3.1 - Firebase Auth)
 // ------------------------------------------------------------
-// This is a static site with NO server-side auth, so these rules
-// are the ONLY real protection. Paste them in the Firebase console:
+// Paste in the Firebase console:
 //   Firestore Database -> Rules -> (paste) -> Publish
 //
-// Design goals:
-//  - Contact form can CREATE messages, but nobody can READ them
-//    publicly (protects submitters). Read them in the Firebase
-//    console, or enable Firebase Auth + the commented rule below.
-//  - Guestbook + global analytics are public (that's the point).
-//  - Dashboard settings are publicly readable (the site renders
-//    them) and — because there is no auth — publicly writable.
-//    The admin passcode is a client-side deterrent only.
+// Requires (one-time setup):
+//   1. Firebase console -> Authentication -> Sign-in method ->
+//      enable "Email/Password".
+//   2. Authentication -> Users -> "Add user" with email
+//      donidonka511@gmail.com and a password. That account is the
+//      only one allowed to manage data below.
+//
+// Design:
+//  - Public site content (dashboard settings, guestbook, analytics)
+//    is readable by everyone so the site renders.
+//  - Anyone can submit a contact message or sign the guestbook.
+//  - Only the signed-in admin (matching email) can read messages,
+//    edit dashboard settings, or delete guestbook/message entries.
+//    This is enforced server-side, so it is real protection.
 // ============================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Dashboard settings rendered by the site + edited from the admin panel.
+    // True only when the request is authenticated as the admin account.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email.lower() == 'donidonka511@gmail.com';
+    }
+
+    // Dashboard settings: public read (site renders them), admin-only write.
     match /dashboard/{doc} {
       allow read: if true;
-      allow write: if true; // no auth available; passcode is client-side only
+      allow write: if isAdmin();
     }
 
-    // System deployment logs written by the dashboard.
+    // System deployment logs: the site may append, only admin may read/manage.
     match /logs/{doc} {
       allow create: if true;
-      allow read: if true;
-      allow update, delete: if false;
+      allow read, update, delete: if isAdmin();
     }
 
-    // Contact form submissions: anyone may send, nobody may read/edit publicly.
+    // Contact form submissions: anyone may send, only admin may read/manage.
     match /messages/{doc} {
       allow create: if true;
-      allow read, update, delete: if false;
-      // To power the admin "Messages" tab without a backend you could set
-      //   allow read, delete: if true;
-      // but that exposes every submitted message publicly. Prefer Firebase
-      // Auth and: allow read, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
 
-    // Public guestbook.
+    // Guestbook: public read + sign, admin-only edit/delete.
     match /guestbook/{doc} {
-      allow create: if true;
       allow read: if true;
-      allow update, delete: if false;
+      allow create: if true;
+      allow update, delete: if isAdmin();
     }
 
-    // Global visitor analytics counter (single doc, increment-only in practice).
+    // Global visitor analytics counter (public read + increment).
     match /analytics/{doc} {
       allow read: if true;
       allow write: if true;

@@ -6,96 +6,95 @@
  */
 
 const Security = (() => {
+    // Client-side hash used ONLY by the full-screen SiteLock (a cosmetic
+    // screensaver). Real admin authorization now uses Firebase Auth below.
     const ADMIN_HASH = '9685a4384cd2da78e4e6d490cc666c3c916066d2a8ef094994b21e6f75f6783b'; // doni2024
-    const SESSION_KEY = 'doni_admin_unlocked';
-    const LOCKOUT_KEY = 'doni_admin_lockout';
-    const ATTEMPTS_KEY = 'doni_admin_attempts';
-    const MAX_ATTEMPTS = 5;
-    const LOCKOUT_MS = 5 * 60 * 1000;
+    const ADMIN_EMAIL = 'donidonka511@gmail.com'; // Firebase Auth admin account
 
     async function sha256(text) {
         const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
         return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    function isLockedOut() {
-        const until = parseInt(sessionStorage.getItem(LOCKOUT_KEY) || '0', 10);
-        if (Date.now() < until) return until;
-        sessionStorage.removeItem(LOCKOUT_KEY);
-        sessionStorage.removeItem(ATTEMPTS_KEY);
-        return false;
+    function firebaseAuthInstance() {
+        // firebase.auth() throws if no app has been initialized yet, so guard on
+        // firebase.apps and swallow any error — callers treat null as "not ready".
+        try {
+            if (typeof firebase !== 'undefined' && firebase.auth &&
+                firebase.apps && firebase.apps.length) {
+                return firebase.auth();
+            }
+        } catch (e) { /* not ready */ }
+        return null;
     }
 
-    function recordFailedAttempt() {
-        const attempts = parseInt(sessionStorage.getItem(ATTEMPTS_KEY) || '0', 10) + 1;
-        sessionStorage.setItem(ATTEMPTS_KEY, String(attempts));
-        if (attempts >= MAX_ATTEMPTS) {
-            sessionStorage.setItem(LOCKOUT_KEY, String(Date.now() + LOCKOUT_MS));
-            return { locked: true, remaining: MAX_ATTEMPTS - attempts };
+    function friendlyAuthError(err) {
+        const code = err && err.code ? err.code : '';
+        switch (code) {
+            case 'auth/invalid-email': return 'Invalid email address.';
+            case 'auth/user-disabled': return 'This account has been disabled.';
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+            case 'auth/invalid-login-credentials': return 'Incorrect email or password.';
+            case 'auth/too-many-requests': return 'Too many attempts. Try again later.';
+            case 'auth/network-request-failed': return 'Network error. Check your connection.';
+            case 'auth/operation-not-allowed':
+            case 'auth/configuration-not-found': return 'Email/Password sign-in is not enabled in Firebase yet.';
+            default: return (err && err.message) ? err.message : 'Sign in failed.';
         }
-        return { locked: false, remaining: MAX_ATTEMPTS - attempts };
     }
 
+    // Admin authorization backed by Firebase Auth. Firestore rules enforce that
+    // only ADMIN_EMAIL can read messages / write dashboard settings, so this is
+    // real (server-side) protection, not just a client-side gate.
     const AdminGate = {
         isUnlocked() {
-            return sessionStorage.getItem(SESSION_KEY) === 'true';
+            const a = firebaseAuthInstance();
+            const u = a && a.currentUser;
+            return !!(u && u.email && u.email.toLowerCase() === ADMIN_EMAIL);
         },
 
-        lock() {
-            sessionStorage.removeItem(SESSION_KEY);
+        async lock() {
+            const a = firebaseAuthInstance();
+            if (a) { try { await a.signOut(); } catch (e) { /* ignore */ } }
             this.refreshUI();
         },
 
-        async unlock(passcode) {
-            const lockout = isLockedOut();
-            if (lockout) {
-                const secs = Math.ceil((lockout - Date.now()) / 1000);
-                return { ok: false, error: `Locked out. Try again in ${secs}s.` };
-            }
-
-            const hash = await sha256(passcode.trim());
-            if (hash === ADMIN_HASH) {
-                sessionStorage.setItem(SESSION_KEY, 'true');
-                sessionStorage.removeItem(ATTEMPTS_KEY);
+        async unlock(email, password) {
+            const a = firebaseAuthInstance();
+            if (!a) return { ok: false, error: 'Auth still loading — try again in a moment.' };
+            try {
+                await a.signInWithEmailAndPassword((email || '').trim(), password || '');
+                const u = a.currentUser;
+                if (!u || !u.email || u.email.toLowerCase() !== ADMIN_EMAIL) {
+                    try { await a.signOut(); } catch (e) { /* ignore */ }
+                    return { ok: false, error: 'This account is not authorized.' };
+                }
                 this.refreshUI();
                 return { ok: true };
+            } catch (err) {
+                return { ok: false, error: friendlyAuthError(err) };
             }
-
-            const result = recordFailedAttempt();
-            if (result.locked) {
-                return { ok: false, error: 'Too many attempts. Locked for 5 minutes.' };
-            }
-            return { ok: false, error: `Invalid passcode. ${result.remaining} attempts left.` };
         },
 
         refreshUI() {
             const lockScreen = document.getElementById('admin-lock-screen');
             const panelContent = document.getElementById('admin-panel-content');
             const lockBtn = document.getElementById('lock-admin-btn');
-            const errorEl = document.getElementById('admin-lock-error');
-            const input = document.getElementById('admin-passcode-input');
+            const emailInput = document.getElementById('admin-email-input');
+            const passInput = document.getElementById('admin-passcode-input');
 
             if (!lockScreen || !panelContent) return;
 
-            const lockout = isLockedOut();
-            const unlocked = this.isUnlocked() && !lockout;
-
+            const unlocked = this.isUnlocked();
             lockScreen.style.display = unlocked ? 'none' : 'flex';
             panelContent.style.display = unlocked ? 'flex' : 'none';
             if (lockBtn) lockBtn.style.display = unlocked ? 'inline-block' : 'none';
 
-            if (errorEl) {
-                if (lockout) {
-                    const secs = Math.ceil((lockout - Date.now()) / 1000);
-                    errorEl.textContent = `Locked out. ${secs}s remaining.`;
-                    errorEl.style.color = '#ef4444';
-                } else {
-                    errorEl.textContent = '';
-                }
-            }
-            if (input && !unlocked) {
-                input.value = '';
-                if (!lockout) setTimeout(() => input.focus(), 100);
+            if (!unlocked) {
+                if (passInput) passInput.value = '';
+                if (emailInput) setTimeout(() => emailInput.focus(), 100);
             }
         }
     };
@@ -269,40 +268,43 @@ const Security = (() => {
 
     function initAdminGate() {
         const unlockBtn = document.getElementById('admin-unlock-btn');
+        const emailInput = document.getElementById('admin-email-input');
         const passInput = document.getElementById('admin-passcode-input');
         const lockBtn = document.getElementById('lock-admin-btn');
 
         AdminGate.refreshUI();
 
-        if (unlockBtn) {
-            unlockBtn.addEventListener('click', async () => {
-                const pass = passInput?.value || '';
-                const result = await AdminGate.unlock(pass);
-                const errorEl = document.getElementById('admin-lock-error');
-                if (!result.ok && errorEl) {
-                    errorEl.textContent = result.error;
-                    errorEl.style.color = '#ef4444';
-                } else if (result.ok && errorEl) {
-                    errorEl.textContent = '';
-                }
-            });
+        async function doUnlock() {
+            const errorEl = document.getElementById('admin-lock-error');
+            if (unlockBtn) unlockBtn.disabled = true;
+            if (errorEl) { errorEl.textContent = 'Signing in…'; errorEl.style.color = 'var(--text-muted)'; }
+
+            const result = await AdminGate.unlock(emailInput?.value || '', passInput?.value || '');
+
+            if (unlockBtn) unlockBtn.disabled = false;
+            if (!result.ok) {
+                if (errorEl) { errorEl.textContent = result.error; errorEl.style.color = '#ef4444'; }
+                if (typeof UI !== 'undefined') UI.Sound.play('error');
+            } else {
+                if (errorEl) errorEl.textContent = '';
+                if (typeof UI !== 'undefined') { UI.Sound.play('success'); UI.toast('🔓 Admin signed in', 'success'); }
+            }
         }
 
-        if (passInput) {
-            passInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') unlockBtn?.click();
+        if (unlockBtn) unlockBtn.addEventListener('click', doUnlock);
+
+        [emailInput, passInput].forEach(el => {
+            if (el) el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); doUnlock(); }
             });
-        }
+        });
 
         if (lockBtn) {
-            lockBtn.addEventListener('click', () => AdminGate.lock());
+            lockBtn.addEventListener('click', () => {
+                AdminGate.lock();
+                if (typeof UI !== 'undefined') UI.toast('Admin signed out', 'info');
+            });
         }
-
-        setInterval(() => {
-            if (document.getElementById('admin-modal')?.style.display === 'flex') {
-                AdminGate.refreshUI();
-            }
-        }, 1000);
     }
 
     return { AdminGate, FormGuard, SiteLock, initAdminGate };
