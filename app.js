@@ -326,6 +326,37 @@ function bindCardGlow() {
 }
 
 // ============================================
+// CARD REVEAL ENGINE (fade + rise, load + scroll)
+// ============================================
+function initCardReveal() {
+    const cards = document.querySelectorAll('.bento-card, .page-hero');
+    if (!cards.length) return;
+
+    if (!('IntersectionObserver' in window)) {
+        cards.forEach(card => card.classList.add('reveal-visible'));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const card = entry.target;
+                const delay = Math.min(parseInt(card.dataset.revealIndex || '0', 10) * 70, 350);
+                card.style.animationDelay = `${delay}ms`;
+                card.classList.add('reveal-visible');
+                obs.unobserve(card);
+            }
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    cards.forEach((card, i) => {
+        card.classList.add('reveal-init');
+        card.dataset.revealIndex = i;
+        observer.observe(card);
+    });
+}
+
+// ============================================
 // GITHUB ACTIVITY FETCHER
 // ============================================
 async function fetchGithubActivity() {
@@ -679,6 +710,7 @@ function initContactForm() {
 function init() {
     Core.SystemLogs.init();
     bindCardGlow();
+    initCardReveal();
     initCommandPalette();
     initHubTabs();
     initAdminPanel();

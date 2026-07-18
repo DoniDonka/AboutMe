@@ -496,6 +496,34 @@ footer a:hover {
     gap: 24px;
 }
 
+/* Reveal Animation (fade + rise on load / scroll) */
+.reveal-init {
+    opacity: 0;
+    transform: translateY(24px);
+}
+
+.reveal-visible {
+    animation: revealIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes revealIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal-init {
+        opacity: 1;
+        transform: none;
+    }
+
+    .reveal-visible {
+        animation: none;
+    }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .grid-container {
