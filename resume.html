@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html" class="active">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">CV</p>
+        <h1>Resume</h1>
+        <p>Full-stack developer with 5+ years of experience building web apps, bots, and real-time systems.</p>
+        <button class="custom-btn" style="margin-top: 16px;" onclick="window.print()">Print / Save PDF</button>
+    </div>
+
+    <div class="grid-container resume-layout">
+        <div class="bento-card span-2">
+            <div class="resume-header">
+                <div>
+                    <h1 style="font-size: 2rem; margin-bottom: 4px;">Doni</h1>
+                    <p style="color: var(--accent-green); font-weight: 600;">Full-Stack Developer</p>
+                </div>
+                <div class="resume-contact">
+                    <div data-copy="donidonka511@gmail.com">donidonka511@gmail.com</div>
+                    <div>github.com/DoniDonka</div>
+                    <div>Discord: _nitr0ne_</div>
+                </div>
+            </div>
+
+            <section class="resume-section">
+                <h3>Summary</h3>
+                <p>Passionate developer crafting clean, functional digital experiences at the intersection of design and engineering. Experienced in real-time sync systems, Discord bot development, modular dashboard architectures, and Firebase-powered backends. Available for freelance and collaboration.</p>
+            </section>
+
+            <section class="resume-section">
+                <h3>Experience</h3>
+                <div class="resume-entry">
+                    <div class="resume-entry-header">
+                        <strong>Independent Developer / Freelancer</strong>
+                        <span>2021 — Present</span>
+                    </div>
+                    <p>Building full-stack web applications, Discord bots, and portfolio systems. Notable work includes real-time Firebase dashboards, command palette frameworks, and Roblox-adjacent tooling.</p>
+                </div>
+                <div class="resume-entry">
+                    <div class="resume-entry-header">
+                        <strong>Open Source Contributor</strong>
+                        <span>2019 — Present</span>
+                    </div>
+                    <p>Contributing to JavaScript/Node.js projects on GitHub. Maintaining personal repos for dashboard engines, API boilerplates, and UI kits.</p>
+                </div>
+            </section>
+
+            <section class="resume-section">
+                <h3>Projects</h3>
+                <div class="resume-entry">
+                    <div class="resume-entry-header">
+                        <strong>DONI Dashboard Engine</strong>
+                        <span class="tag green" style="margin: 0;">Live</span>
+                    </div>
+                    <p>Modular bento-grid portfolio with Firebase sync, admin panel, command palette, and security layer. Vanilla JS, zero dependencies.</p>
+                </div>
+                <div class="resume-entry">
+                    <div class="resume-entry-header">
+                        <strong>Discord RPC Manager</strong>
+                        <span class="tag purple" style="margin: 0;">In Progress</span>
+                    </div>
+                    <p>Rich Presence controller with activity switching and cross-platform sync via Discord API.</p>
+                </div>
+                <div class="resume-entry">
+                    <div class="resume-entry-header">
+                        <strong>REST API Boilerplate</strong>
+                    </div>
+                    <p>Production Node.js starter with JWT auth, rate limiting, and MongoDB integration.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="bento-card">
+            <h3>Skills</h3>
+            <div class="skill-bars">
+                <div class="skill-row"><span>JavaScript</span><div class="skill-track"><div class="skill-fill" style="width: 95%"></div></div></div>
+                <div class="skill-row"><span>Node.js</span><div class="skill-track"><div class="skill-fill" style="width: 90%"></div></div></div>
+                <div class="skill-row"><span>Firebase</span><div class="skill-track"><div class="skill-fill" style="width: 85%"></div></div></div>
+                <div class="skill-row"><span>CSS / HTML</span><div class="skill-track"><div class="skill-fill" style="width: 92%"></div></div></div>
+                <div class="skill-row"><span>Discord.js</span><div class="skill-track"><div class="skill-fill" style="width: 88%"></div></div></div>
+                <div class="skill-row"><span>MongoDB</span><div class="skill-track"><div class="skill-fill" style="width: 80%"></div></div></div>
+                <div class="skill-row"><span>Git</span><div class="skill-track"><div class="skill-fill" style="width: 90%"></div></div></div>
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3>Education</h3>
+            <div class="resume-entry" style="border: none; padding-bottom: 0;">
+                <strong>Self-Taught Developer</strong>
+                <p style="margin-top: 8px;">5+ years of hands-on learning through building projects, open source, and real-world freelance work.</p>
+            </div>
+            <h3 style="margin-top: 24px;">Languages</h3>
+            <ul class="uses-list">
+                <li>English — Fluent</li>
+                <li>Albanian — Native</li>
+            </ul>
+        </div>
+
+        <div class="bento-card span-3" style="text-align: center; padding: 40px;">
+            <h2 style="margin-bottom: 8px;">Interested in working together?</h2>
+            <p style="margin-bottom: 20px;">I'm open to freelance projects, collaborations, and bot development.</p>
+            <a href="contact.html" class="custom-btn" style="text-decoration: none;">Get In Touch</a>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

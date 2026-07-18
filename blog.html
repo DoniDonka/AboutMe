@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html" class="active">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Dev Log</p>
+        <h1>Blog & Updates</h1>
+        <p>Build notes, project updates, and things I'm learning along the way.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-3">
+            <div class="blog-timeline">
+                <article class="blog-entry">
+                    <div class="blog-date"><span class="blog-day">18</span><span class="blog-month">Jul 2026</span></div>
+                    <div class="blog-content">
+                        <span class="tag green">Release</span>
+                        <h2>Portfolio v2.0 — Massive Feature Drop</h2>
+                        <p>Shipped a huge update to the DONI dashboard: passcode-protected admin panel, math captcha on the contact form, new pages (Links, Blog, Uses, Resume, Guestbook, Stats, Changelog), mobile nav, Konami code easter egg, and Firebase guestbook integration. The bento grid aesthetic stays the same — just way more functionality under the hood.</p>
+                        <div class="blog-tags"><span class="tag">Vanilla JS</span><span class="tag">Security</span><span class="tag">Firebase</span></div>
+                    </div>
+                </article>
+
+                <article class="blog-entry">
+                    <div class="blog-date"><span class="blog-day">12</span><span class="blog-month">Jun 2026</span></div>
+                    <div class="blog-content">
+                        <span class="tag blue">Feature</span>
+                        <h2>Real-time Firebase Sync Goes Live</h2>
+                        <p>Connected the admin panel to Firestore with onSnapshot listeners. Dashboard settings now propagate instantly across tabs and devices. localStorage fallback keeps things working offline. Added deployment log streaming and GitHub activity feed on the main dashboard.</p>
+                        <div class="blog-tags"><span class="tag">Firebase</span><span class="tag">Firestore</span></div>
+                    </div>
+                </article>
+
+                <article class="blog-entry">
+                    <div class="blog-date"><span class="blog-day">28</span><span class="blog-month">May 2026</span></div>
+                    <div class="blog-content">
+                        <span class="tag purple">Experiment</span>
+                        <h2>Command Palette Architecture</h2>
+                        <p>Built a Ctrl+K command routing system inspired by VS Code and Raycast. Supports navigation, system commands, admin access, and extensible plugin hooks. Zero dependencies — pure keyboard event handling and DOM manipulation.</p>
+                        <div class="blog-tags"><span class="tag">UX</span><span class="tag">Keyboard</span></div>
+                    </div>
+                </article>
+
+                <article class="blog-entry">
+                    <div class="blog-date"><span class="blog-day">15</span><span class="blog-month">Apr 2026</span></div>
+                    <div class="blog-content">
+                        <span class="tag">Build</span>
+                        <h2>Bento Grid Dashboard — First Version</h2>
+                        <p>Started the portfolio as a modular bento-grid layout with cursor-tracking border glow, sparkline latency charts, and a developer hub with code snippet copier. The goal: make a personal site that feels like a dev tool, not a template.</p>
+                        <div class="blog-tags"><span class="tag">CSS Grid</span><span class="tag">Design</span></div>
+                    </div>
+                </article>
+
+                <article class="blog-entry">
+                    <div class="blog-date"><span class="blog-day">03</span><span class="blog-month">Mar 2026</span></div>
+                    <div class="blog-content">
+                        <span class="tag green">Discord</span>
+                        <h2>Discord RPC Manager Prototype</h2>
+                        <p>Started building a Discord Rich Presence controller with real-time activity switching. Integrated presence display into the dashboard's Developer Hub tab. Next step: cross-platform Electron wrapper.</p>
+                        <div class="blog-tags"><span class="tag">Discord.js</span><span class="tag">Node.js</span></div>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3>RSS / Subscribe</h3>
+            <p style="margin-bottom: 16px;">Stay updated on new posts.</p>
+            <a href="changelog.html" class="custom-btn secondary" style="display: block; text-align: center; text-decoration: none; margin-bottom: 10px;">View Changelog</a>
+            <a href="contact.html" class="custom-btn" style="display: block; text-align: center; text-decoration: none;">Get Notified</a>
+        </div>
+
+        <div class="bento-card">
+            <h3>Categories</h3>
+            <div style="margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px;">
+                <span class="tag green">Release</span>
+                <span class="tag blue">Feature</span>
+                <span class="tag purple">Experiment</span>
+                <span class="tag">Build</span>
+                <span class="tag">Discord</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <div id="cmd-palette" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(5px); justify-content: center; align-items: flex-start; padding-top: 100px;">
+        <div style="background: #111; width: 520px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <input type="text" id="cmd-input" placeholder="Type a command..." style="width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

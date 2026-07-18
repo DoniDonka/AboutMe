@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uses | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html" class="active">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Setup</p>
+        <h1>Uses</h1>
+        <p>Hardware, software, and tools I use daily to build things.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-2">
+            <h2>Hardware</h2>
+            <div class="uses-grid">
+                <div class="uses-item">
+                    <div class="uses-icon">💻</div>
+                    <div>
+                        <h4>Acer Nitro 5</h4>
+                        <p>Primary dev machine — i5, 16GB RAM, GTX 1650. Runs Node, VS Code, and Roblox Studio without breaking a sweat.</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">📱</div>
+                    <div>
+                        <h4>Samsung Galaxy S24 FE</h4>
+                        <p>Daily driver for testing mobile layouts, Discord on the go, and quick GitHub checks.</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">🎧</div>
+                    <div>
+                        <h4>Audio Setup</h4>
+                        <p>Standard wired earbuds + laptop speakers. Keeps it simple for coding sessions and calls.</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">⌨️</div>
+                    <div>
+                        <h4>Peripherals</h4>
+                        <p>Built-in keyboard and trackpad. External mouse when gaming or long coding sessions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3>Desk Essentials</h3>
+            <ul class="uses-list">
+                <li>VS Code (primary IDE)</li>
+                <li>Chrome / Edge DevTools</li>
+                <li>Windows Terminal</li>
+                <li>Git + GitHub Desktop</li>
+                <li>Postman for API testing</li>
+                <li>Roblox Studio</li>
+            </ul>
+        </div>
+
+        <div class="bento-card span-2">
+            <h2>Software Stack</h2>
+            <div class="uses-grid">
+                <div class="uses-item">
+                    <div class="uses-icon">⚡</div>
+                    <div>
+                        <h4>Languages</h4>
+                        <p>JavaScript (ES6+), HTML5, CSS3, Luau, basic Python</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">🟢</div>
+                    <div>
+                        <h4>Runtime & Frameworks</h4>
+                        <p>Node.js, Express, Discord.js, Vanilla JS (no framework dependency)</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">🔥</div>
+                    <div>
+                        <h4>Backend & Database</h4>
+                        <p>Firebase Firestore, MongoDB, localStorage for offline-first patterns</p>
+                    </div>
+                </div>
+                <div class="uses-item">
+                    <div class="uses-icon">🚀</div>
+                    <div>
+                        <h4>Deployment</h4>
+                        <p>GitHub Pages, Firebase Hosting, Netlify for static sites</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3>VS Code Extensions</h3>
+            <ul class="uses-list">
+                <li>Prettier — code formatting</li>
+                <li>ESLint — linting</li>
+                <li>Live Server — local preview</li>
+                <li>GitLens — git blame/history</li>
+                <li>Thunder Client — REST testing</li>
+                <li>Material Icon Theme</li>
+            </ul>
+        </div>
+
+        <div class="bento-card span-3">
+            <h3>Design Philosophy</h3>
+            <p style="margin-bottom: 16px;">I prefer dark themes, minimal dependencies, and CSS custom properties over heavy frameworks. Grid + Flexbox for layout. Inter font. Green accent on pure black. If it can be vanilla JS, it should be.</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <span class="tag">Dark Mode Only</span>
+                <span class="tag green">Zero Framework</span>
+                <span class="tag blue">CSS Variables</span>
+                <span class="tag purple">Mobile First</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

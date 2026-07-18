@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Version History</p>
+        <h1>Changelog</h1>
+        <p>Every release, fix, and feature shipped to this portfolio.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-3">
+            <div class="changelog-list">
+                <div class="changelog-version">
+                    <div class="changelog-badge current">v2.0.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Passcode-protected admin panel (SHA-256 hashed)</li>
+                        <li><span class="cl-tag added">Added</span> Math captcha + honeypot + rate limiting on contact form</li>
+                        <li><span class="cl-tag added">Added</span> Links page (Roblox, YouTube, GitHub, Discord)</li>
+                        <li><span class="cl-tag added">Added</span> Blog, Uses, Resume, Guestbook, Stats, Changelog pages</li>
+                        <li><span class="cl-tag added">Added</span> Mobile hamburger navigation</li>
+                        <li><span class="cl-tag added">Added</span> Konami code easter egg (secret mode)</li>
+                        <li><span class="cl-tag added">Added</span> Back-to-top button, visitor tracking, copy-to-clipboard</li>
+                        <li><span class="cl-tag changed">Changed</span> Logo badge bumped to v2.0</li>
+                        <li><span class="cl-tag changed">Changed</span> Nav tightened to fit 8 pages</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v1.4.0</div>
+                    <div class="changelog-date">Jun 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Firebase Firestore real-time sync</li>
+                        <li><span class="cl-tag added">Added</span> Contact form with Firebase message storage</li>
+                        <li><span class="cl-tag added">Added</span> Card reveal animations on scroll</li>
+                        <li><span class="cl-tag fixed">Fixed</span> Admin settings persistence across sessions</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v1.3.0</div>
+                    <div class="changelog-date">May 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Command palette (Ctrl+K)</li>
+                        <li><span class="cl-tag added">Added</span> Developer Hub with tabs (Snippets, Tools, Discord)</li>
+                        <li><span class="cl-tag added">Added</span> JSON prettifier and Base64 encoder utilities</li>
+                        <li><span class="cl-tag added">Added</span> GitHub activity feed integration</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v1.2.0</div>
+                    <div class="changelog-date">Apr 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Admin control panel modal</li>
+                        <li><span class="cl-tag added">Added</span> Network metrics sparkline chart</li>
+                        <li><span class="cl-tag added">Added</span> Interactive preview sandbox on dashboard</li>
+                        <li><span class="cl-tag added">Added</span> Projects, About, Contact pages</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v1.0.0</div>
+                    <div class="changelog-date">Mar 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Initial bento-grid dashboard</li>
+                        <li><span class="cl-tag added">Added</span> Cursor-tracking border glow effect</li>
+                        <li><span class="cl-tag added">Added</span> Deployment log stream</li>
+                        <li><span class="cl-tag added">Added</span> Live time display and status indicator</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

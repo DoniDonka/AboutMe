@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guestbook | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Community</p>
+        <h1>Guestbook</h1>
+        <p>Leave a note — say hi, give feedback, or just mark that you were here.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-2">
+            <h3>Sign the Guestbook</h3>
+            <form id="guestbook-form" style="margin-top: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="gb-name">Your Name</label>
+                    <input type="text" id="gb-name" class="custom-input" placeholder="Anonymous is fine too" required maxlength="50">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="gb-message">Message</label>
+                    <textarea id="gb-message" class="custom-input" placeholder="Hey Doni, love the site!" required maxlength="300"></textarea>
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button type="submit" class="custom-btn green">Sign Guestbook</button>
+                    <span id="gb-status" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+                </div>
+            </form>
+        </div>
+
+        <div class="bento-card">
+            <h3>Rules</h3>
+            <ul class="uses-list" style="margin-top: 16px;">
+                <li>Be respectful</li>
+                <li>No spam or links</li>
+                <li>Keep it under 300 chars</li>
+                <li>Have fun 🎉</li>
+            </ul>
+        </div>
+
+        <div class="bento-card span-3">
+            <h3>Recent Entries</h3>
+            <div id="guestbook-entries" class="guestbook-list" style="margin-top: 20px;">
+                <p class="guestbook-empty">Loading entries...</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

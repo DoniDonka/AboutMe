@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Analytics</p>
+        <h1>Site Stats</h1>
+        <p>Local visitor analytics — page views tracked in your browser.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-3" id="stats-container">
+            <p>Loading stats...</p>
+        </div>
+
+        <div class="bento-card span-2">
+            <h3>System Info</h3>
+            <div style="margin-top: 16px; font-family: monospace; font-size: 0.85rem; color: var(--text-muted); line-height: 2;">
+                <div>User Agent: <span id="stat-ua" style="color: #fff; word-break: break-all;"></span></div>
+                <div>Screen: <span id="stat-screen" style="color: #fff;"></span></div>
+                <div>Language: <span id="stat-lang" style="color: #fff;"></span></div>
+                <div>Online: <span id="stat-online" style="color: #fff;"></span></div>
+                <div>Timezone: <span id="stat-tz" style="color: #fff;"></span></div>
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3>Performance</h3>
+            <div style="margin-top: 16px;">
+                <div class="stat-card" style="margin-bottom: 12px;">
+                    <div class="stat-value" id="stat-load-time">—</div>
+                    <div class="stat-label">Page Load (ms)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-memory">—</div>
+                    <div class="stat-label">JS Heap (MB)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stat-ua').textContent = navigator.userAgent.slice(0, 80) + '…';
+            document.getElementById('stat-screen').textContent = `${screen.width}×${screen.height}`;
+            document.getElementById('stat-lang').textContent = navigator.language;
+            document.getElementById('stat-online').textContent = navigator.onLine ? 'Yes' : 'No';
+            document.getElementById('stat-tz').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+            if (performance.timing) {
+                const load = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                document.getElementById('stat-load-time').textContent = load > 0 ? load : '—';
+            }
+            if (performance.memory) {
+                document.getElementById('stat-memory').textContent = Math.round(performance.memory.usedJSHeapSize / 1048576);
+            }
+        });
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

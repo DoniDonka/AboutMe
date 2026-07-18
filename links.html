@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Links | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <span>DONI</span>
+            <span class="logo-badge">v2.0</span>
+        </a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html" class="active">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn">
+            <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
+        </div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Social Hub</p>
+        <h1>Gaming & Socials</h1>
+        <p>Everywhere I'm active online — dev work, gaming, and content creation.</p>
+    </div>
+
+    <div class="grid-container">
+        <!-- Roblox -->
+        <div class="bento-card span-2 social-card roblox-card">
+            <div class="social-card-header">
+                <div class="social-card-icon roblox-icon">🎮</div>
+                <div>
+                    <h2>Roblox</h2>
+                    <p class="social-handle">@DoniDonka</p>
+                </div>
+                <span class="tag green">Gaming</span>
+            </div>
+            <p style="margin: 16px 0;">Building and playing on Roblox. Into simulators, tycoons, and experimenting with Luau scripting on the side.</p>
+            <div class="social-card-meta">
+                <div class="meta-item"><span>Platform</span><strong>Roblox</strong></div>
+                <div class="meta-item"><span>Username</span><strong>DoniDonka</strong></div>
+                <div class="meta-item"><span>Status</span><strong style="color: var(--accent-green);">Active</strong></div>
+            </div>
+            <a href="https://www.roblox.com/users/profile?username=DoniDonka" target="_blank" rel="noopener" class="custom-btn" style="margin-top: 20px; display: inline-block; text-decoration: none;">View Profile →</a>
+        </div>
+
+        <!-- YouTube -->
+        <div class="bento-card social-card youtube-card">
+            <div class="social-card-header">
+                <div class="social-card-icon youtube-icon">▶</div>
+                <div>
+                    <h3>YouTube</h3>
+                    <p class="social-handle">DoniDonka</p>
+                </div>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.85rem;">Dev logs, gaming clips, and project walkthroughs.</p>
+            <a href="https://www.youtube.com/@DoniDonka" target="_blank" rel="noopener" class="social-link" style="margin-top: 16px;">
+                <div class="social-icon" style="background: rgba(255,0,0,0.15);">▶</div>
+                <div>
+                    <div style="font-weight: 600;">Subscribe</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">youtube.com/@DoniDonka</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- GitHub -->
+        <div class="bento-card social-card">
+            <div class="social-card-header">
+                <div class="social-card-icon">🐙</div>
+                <div>
+                    <h3>GitHub</h3>
+                    <p class="social-handle">@DoniDonka</p>
+                </div>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.85rem;">Open source projects, experiments, and portfolio code.</p>
+            <a href="https://github.com/DoniDonka" target="_blank" rel="noopener" class="custom-btn secondary" style="margin-top: 16px; display: inline-block; text-decoration: none;">View Repos →</a>
+        </div>
+
+        <!-- Discord -->
+        <div class="bento-card social-card">
+            <div class="social-card-header">
+                <div class="social-card-icon" style="background: rgba(88,101,242,0.2);">💬</div>
+                <div>
+                    <h3>Discord</h3>
+                    <p class="social-handle">_nitr0ne_</p>
+                </div>
+            </div>
+            <p style="margin-top: 12px; font-size: 0.85rem;">Best way to reach me for quick collabs or bot dev talk.</p>
+            <div class="tag purple" style="margin-top: 16px;">DM Open</div>
+        </div>
+
+        <!-- Games I Play -->
+        <div class="bento-card span-2">
+            <h3>Currently Playing</h3>
+            <p style="margin-bottom: 16px;">Games I'm into right now on Roblox and beyond.</p>
+            <div class="games-grid">
+                <div class="game-chip"><span>🌊</span> Blox Fruits</div>
+                <div class="game-chip"><span>⚔️</span> Anime Adventures</div>
+                <div class="game-chip"><span>🏗️</span> Build a Boat</div>
+                <div class="game-chip"><span>🎯</span> Arsenal</div>
+                <div class="game-chip"><span>🌍</span> Brookhaven</div>
+                <div class="game-chip"><span>💻</span> VS Code (always)</div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="bento-card">
+            <h3>Quick Links</h3>
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <a href="mailto:donidonka511@gmail.com" class="social-link">
+                    <div class="social-icon">📧</div>
+                    <div><div style="font-weight: 600;">Email</div><div style="font-size: 0.8rem; color: var(--text-muted);" data-copy="donidonka511@gmail.com">donidonka511@gmail.com</div></div>
+                </a>
+                <a href="contact.html" class="social-link">
+                    <div class="social-icon">📝</div>
+                    <div><div style="font-weight: 600;">Contact Form</div><div style="font-size: 0.8rem; color: var(--text-muted);">Send a message</div></div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <div id="cmd-palette" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(5px); justify-content: center; align-items: flex-start; padding-top: 100px;">
+        <div style="background: #111; width: 520px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <input type="text" id="cmd-input" placeholder="Type a command..." style="width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+            <div style="margin-top: 14px;">
+                <div class="cmd-hint" onclick="selectCmd('home')"><span>> home</span><span>Dashboard</span></div>
+                <div class="cmd-hint" onclick="selectCmd('help')"><span>> help</span><span>All commands</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

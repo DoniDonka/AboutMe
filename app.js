@@ -234,7 +234,15 @@ const Core = {
             'home': 'Navigate to Dashboard.',
             'projects': 'Navigate to Projects page.',
             'about': 'Navigate to About page.',
-            'contact': 'Navigate to Contact page.'
+            'contact': 'Navigate to Contact page.',
+            'links': 'Navigate to Links / Socials page.',
+            'blog': 'Navigate to Blog page.',
+            'uses': 'Navigate to Uses / Setup page.',
+            'resume': 'Navigate to Resume page.',
+            'guestbook': 'Navigate to Guestbook.',
+            'stats': 'Navigate to Site Stats.',
+            'changelog': 'Navigate to Changelog.',
+            'lock': 'Lock the admin panel.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -300,6 +308,33 @@ const Core = {
             }
             else if (trigger === 'contact') {
                 window.location.href = 'contact.html';
+            }
+            else if (trigger === 'links') {
+                window.location.href = 'links.html';
+            }
+            else if (trigger === 'blog') {
+                window.location.href = 'blog.html';
+            }
+            else if (trigger === 'uses') {
+                window.location.href = 'uses.html';
+            }
+            else if (trigger === 'resume') {
+                window.location.href = 'resume.html';
+            }
+            else if (trigger === 'guestbook') {
+                window.location.href = 'guestbook.html';
+            }
+            else if (trigger === 'stats') {
+                window.location.href = 'stats.html';
+            }
+            else if (trigger === 'changelog') {
+                window.location.href = 'changelog.html';
+            }
+            else if (trigger === 'lock') {
+                if (typeof Security !== 'undefined') {
+                    Security.AdminGate.lock();
+                    Core.SystemLogs.write('Admin panel locked.');
+                }
             }
             else {
                 Core.SystemLogs.write(`Command parsing error: "${clean}" not recognized. Try 'help'.`);
@@ -519,6 +554,9 @@ function processUtil(type) {
 function toggleAdminModal(show) {
     const modal = document.getElementById('admin-modal');
     if (modal) modal.style.display = show ? 'flex' : 'none';
+    if (show && typeof Security !== 'undefined') {
+        Security.AdminGate.refreshUI();
+    }
 }
 
 function initAdminPanel() {
@@ -644,6 +682,16 @@ function initContactForm() {
     const form = document.getElementById('contact-form');
     if (!form) return;
 
+    if (typeof Security !== 'undefined') {
+        Security.FormGuard.initCaptcha();
+        const refreshBtn = document.getElementById('captcha-refresh');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                Security.FormGuard.refreshAfterSubmit();
+            });
+        }
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('contact-name')?.value || '';
@@ -651,6 +699,18 @@ function initContactForm() {
         const subject = document.getElementById('contact-subject')?.value || 'No subject';
         const message = document.getElementById('contact-message')?.value || '';
         const statusEl = document.getElementById('form-status');
+
+        if (typeof Security !== 'undefined') {
+            const guard = Security.FormGuard.validate();
+            if (!guard.ok) {
+                if (statusEl) {
+                    statusEl.innerText = guard.error;
+                    statusEl.style.color = '#ef4444';
+                }
+                Security.FormGuard.refreshAfterSubmit();
+                return;
+            }
+        }
 
         if (!name || !email || !message) {
             if (statusEl) {
@@ -682,6 +742,7 @@ function initContactForm() {
                     statusEl.style.color = '#22c55e';
                 }
                 form.reset();
+                if (typeof Security !== 'undefined') Security.FormGuard.refreshAfterSubmit();
                 Core.SystemLogs.write(`<span style="color:#22c55e;">✓</span> Message from ${name} saved to Firebase.`);
             } catch (error) {
                 console.error('[Contact] Save error:', error);
@@ -698,6 +759,7 @@ function initContactForm() {
                     statusEl.style.color = '#22c55e';
                 }
                 form.reset();
+                if (typeof Security !== 'undefined') Security.FormGuard.refreshAfterSubmit();
                 Core.SystemLogs.write(`Contact form submitted by ${name}. (Local only)`);
             }, 1000);
         }
@@ -716,6 +778,13 @@ function init() {
     initAdminPanel();
     initPreviewControls();
     initContactForm();
+
+    if (typeof Security !== 'undefined') {
+        Security.initAdminGate();
+    }
+    if (typeof Features !== 'undefined') {
+        Features.init();
+    }
 
     // Initialize Firebase after a short delay to ensure DOM is ready
     setTimeout(() => {

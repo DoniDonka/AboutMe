@@ -12,13 +12,17 @@
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
-            <span class="logo-badge">v1.4</span>
+            <span class="logo-badge">v2.0</span>
         </a>
         <nav class="nav-links">
             <a href="index.html" class="active">Dashboard</a>
             <a href="projects.html">Projects</a>
             <a href="about.html">About</a>
             <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn" title="Toggle System Status / Settings">
@@ -227,6 +231,16 @@
         </div>
     </div>
 
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
     <!-- Command Palette Modal (Ctrl/Cmd + K) -->
     <div id="cmd-palette"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(5px); justify-content: center; align-items: flex-start; padding-top: 100px;">
@@ -267,10 +281,27 @@
                     <h2 style="font-size: 1.4rem; margin-bottom: 2px;">Dashboard Admin Control</h2>
                     <p style="font-size: 0.8rem;">Manage live content and integration settings</p>
                 </div>
-                <button id="close-admin-btn"
-                    style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer;">✕</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="lock-admin-btn"
+                        style="display: none; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Lock</button>
+                    <button id="close-admin-btn"
+                        style="background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer;">✕</button>
+                </div>
             </div>
 
+            <!-- Passcode Lock Screen -->
+            <div id="admin-lock-screen" class="admin-lock-screen">
+                <div class="admin-lock-icon">🔒</div>
+                <h3 style="margin-bottom: 4px;">Admin Access Required</h3>
+                <p>Enter passcode to unlock dashboard controls. Client-side only — deters casual access.</p>
+                <div class="admin-passcode-row">
+                    <input type="password" id="admin-passcode-input" class="custom-input" placeholder="••••••••" autocomplete="off">
+                    <button id="admin-unlock-btn" class="custom-btn green">Unlock</button>
+                </div>
+                <div id="admin-lock-error" class="admin-lock-error"></div>
+            </div>
+
+            <div id="admin-panel-content">
             <div style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <label
@@ -306,6 +337,7 @@
                         Sync Dashboard</button>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
@@ -314,7 +346,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
-    <!-- App Core -->
+    <script src="security.js"></script>
+    <script src="features.js"></script>
     <script src="app.js"></script>
 </body>
 

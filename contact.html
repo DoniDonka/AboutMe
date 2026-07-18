@@ -12,13 +12,17 @@
     <header>
         <a href="index.html" class="logo">
             <span>DONI</span>
-            <span class="logo-badge">v1.4</span>
+            <span class="logo-badge">v2.0</span>
         </a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
             <a href="about.html">About</a>
             <a href="contact.html" class="active">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
         </nav>
         <div class="status" id="status-btn">
             <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
@@ -56,6 +60,23 @@
                     <label for="contact-message">Message</label>
                     <textarea id="contact-message" class="custom-input"
                         placeholder="Tell me about your project, idea, or just say hello..." required></textarea>
+                </div>
+
+                <!-- Honeypot (hidden from humans, visible to bots) -->
+                <div class="hp-field" aria-hidden="true">
+                    <label for="contact-honeypot">Leave blank</label>
+                    <input type="text" id="contact-honeypot" name="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <!-- Math Captcha -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Security Check</label>
+                    <div class="captcha-row">
+                        <span id="captcha-question" class="captcha-question">?</span>
+                        <span style="color: var(--text-muted);">=</span>
+                        <input type="number" id="captcha-answer" class="custom-input" placeholder="?" required>
+                        <button type="button" id="captcha-refresh" class="captcha-refresh" title="New question">↻</button>
+                    </div>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -165,10 +186,12 @@
     </div>
 
     <footer>
-        <div>&copy; 2024 DONI. All systems operational.</div>
+        <div>&copy; 2026 DONI. All systems operational.</div>
         <div class="footer-links">
+            <a href="changelog.html">Changelog</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="stats.html">Stats</a>
             <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
-            <a href="mailto:donidonka511@gmail.com">Email</a>
         </div>
     </footer>
 
@@ -197,11 +220,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
-    <!-- App Core -->
+    <script src="security.js"></script>
+    <script src="features.js"></script>
     <script src="app.js"></script>
 </body>
 
