@@ -9,7 +9,7 @@ const Security = (() => {
     // Client-side hash used ONLY by the full-screen SiteLock (a cosmetic
     // screensaver). Real admin authorization now uses Firebase Auth below.
     const ADMIN_HASH = '9685a4384cd2da78e4e6d490cc666c3c916066d2a8ef094994b21e6f75f6783b'; // doni2024
-    const ADMIN_EMAIL = 'donidonka511@gmail.com'; // Firebase Auth admin account
+    const ADMIN_EMAIL = 'doni@admin.com'; // Firebase Auth admin account
 
     async function sha256(text) {
         const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));

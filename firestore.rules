@@ -10,7 +10,7 @@ rules_version = '2';
 //   1. Firebase console -> Authentication -> Sign-in method ->
 //      enable "Email/Password".
 //   2. Authentication -> Users -> "Add user" with email
-//      donidonka511@gmail.com and a password. That account is the
+//      doni@admin.com and a password. That account is the
 //      only one allowed to manage data below.
 //
 // Design:
@@ -28,7 +28,7 @@ service cloud.firestore {
     // True only when the request is authenticated as the admin account.
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email.lower() == 'donidonka511@gmail.com';
+        && request.auth.token.email.lower() == 'doni@admin.com';
     }
 
     // Dashboard settings: public read (site renders them), admin-only write.
