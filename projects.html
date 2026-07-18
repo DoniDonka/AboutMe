@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <span>DONI</span>
+            <span class="logo-badge">v1.2</span>
+        </a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html" class="active">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="status" id="status-btn">
+            <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
+        </div>
+    </header>
+
+    <div class="page-hero">
+        <p
+            style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">
+            Portfolio</p>
+        <h1>Projects & Work</h1>
+        <p>A collection of applications, tools, and experiments I've built. Each project represents a deep dive into
+            solving real problems with clean code.</p>
+    </div>
+
+    <div class="grid-container">
+        <!-- Project 1 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ Dashboard Preview ]
+            </div>
+            <h3>DONI Dashboard Engine</h3>
+            <p>The very dashboard you're viewing. A modular bento-grid system with real-time telemetry, command palette,
+                and admin controls.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag green">Live</span>
+                <span class="tag">Vanilla JS</span>
+                <span class="tag">CSS Grid</span>
+            </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ Discord Bot UI ]
+            </div>
+            <h3>Discord RPC Manager</h3>
+            <p>Custom Discord Rich Presence controller with real-time activity switching, game detection, and
+                cross-platform sync.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag purple">In Progress</span>
+                <span class="tag">Node.js</span>
+                <span class="tag">Discord API</span>
+            </div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ Firebase Console ]
+            </div>
+            <h3>Real-time Sync Engine</h3>
+            <p>Firebase-powered state synchronization module for instant data propagation across multiple client
+                instances.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag blue">Beta</span>
+                <span class="tag">Firebase</span>
+                <span class="tag">WebSockets</span>
+            </div>
+        </div>
+
+        <!-- Project 4: Larger Featured -->
+        <div class="bento-card span-2">
+            <div style="display: flex; gap: 30px; align-items: center;">
+                <div class="project-thumb"
+                    style="width: 200px; min-width: 200px; height: 150px; border-radius: 10px; margin: 0;">
+                    [ CLI Preview ]
+                </div>
+                <div>
+                    <span class="tag green" style="margin: 0 0 10px 0;">Featured</span>
+                    <h3 style="font-size: 1.3rem;">Command Palette Framework</h3>
+                    <p style="margin-bottom: 12px;">A reusable, keyboard-driven command interface (Ctrl+K) with fuzzy
+                        search, command routing, and extensible plugin architecture. Built for developer tools and
+                        dashboards.</p>
+                    <div>
+                        <span class="tag">Vanilla JS</span>
+                        <span class="tag">Keyboard Events</span>
+                        <span class="tag">Modular</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project 5 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ API Schema ]
+            </div>
+            <h3>REST API Boilerplate</h3>
+            <p>Production-ready Node.js API starter with JWT auth, rate limiting, and MongoDB integration.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag">Node.js</span>
+                <span class="tag">Express</span>
+                <span class="tag">MongoDB</span>
+            </div>
+        </div>
+
+        <!-- Project 6 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ Network Graph ]
+            </div>
+            <h3>Latency Monitor</h3>
+            <p>Visual network latency tracker with sparkline graphs, packet loss detection, and historical logging.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag green">Live</span>
+                <span class="tag">Fetch API</span>
+                <span class="tag">Canvas</span>
+            </div>
+        </div>
+
+        <!-- Project 7 -->
+        <div class="bento-card">
+            <div class="project-thumb" style="margin: -30px -30px 20px -30px; height: 140px;">
+                [ Theme Preview ]
+            </div>
+            <h3>Dark Mode UI Kit</h3>
+            <p>Comprehensive dark-themed component library with CSS custom properties, accessibility focus, and zero
+                dependencies.</p>
+            <div style="margin-top: auto; padding-top: 12px;">
+                <span class="tag">CSS</span>
+                <span class="tag">Design System</span>
+            </div>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="bento-card span-3" style="text-align: center; padding: 50px 30px;">
+            <h2 style="margin-bottom: 8px;">Want to collaborate?</h2>
+            <p style="margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">I'm always open to
+                discussing new projects, creative ideas, or opportunities to be part of something great.</p>
+            <a href="contact.html" class="custom-btn" style="display: inline-block; text-decoration: none;">Get In
+                Touch</a>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2024 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+            <a href="contact.html">Contact</a>
+        </div>
+    </footer>
+
+    <!-- Command Palette Modal -->
+    <div id="cmd-palette"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(5px); justify-content: center; align-items: flex-start; padding-top: 100px;">
+        <div
+            style="background: #111; width: 520px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Command
+                    Routing Palette</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">[ESC] Close</span>
+            </div>
+            <input type="text" id="cmd-input" placeholder="Type a command... (home, about, contact)"
+                style="width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+
+            <div style="margin-top: 14px;">
+                <div class="cmd-hint" onclick="selectCmd('home')"><span>> home</span><span>Go to Dashboard</span></div>
+                <div class="cmd-hint" onclick="selectCmd('about')"><span>> about</span><span>Learn about me</span></div>
+                <div class="cmd-hint" onclick="selectCmd('contact')"><span>> contact</span><span>Get in touch</span>
+                </div>
+                <div class="cmd-hint" onclick="selectCmd('help')"><span>> help</span><span>Show all commands</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

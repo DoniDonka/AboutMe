@@ -1,9 +1,198 @@
 /**
  * DONI | DEV - Core Application Engine
- * Version: 1.2
- * Vanilla JS - No frameworks
+ * Version: 1.3 - Firebase Edition
+ * Vanilla JS + Firebase Firestore
  */
 
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
+    authDomain: "aboutme-8a339.firebaseapp.com",
+    projectId: "aboutme-8a339",
+    storageBucket: "aboutme-8a339.firebasestorage.app",
+    messagingSenderId: "638307646276",
+    appId: "1:638307646276:web:fe52c653fd16fa81f37511",
+    measurementId: "G-KHCMH8W9WB"
+};
+
+// Initialize Firebase
+let db = null;
+let firebaseReady = false;
+
+function initFirebase() {
+    try {
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            firebaseReady = true;
+            Core.SystemLogs.write('<span style="color:#22c55e;">✓</span> Firebase connected successfully.');
+            console.log('[Firebase] Initialized successfully');
+
+            // Start real-time listener
+            initRealtimeSync();
+        } else {
+            console.warn('[Firebase] SDK not loaded, using localStorage fallback');
+            Core.SystemLogs.write('<span style="color:#eab308;">⚠</span> Firebase SDK not loaded. Using local storage.');
+        }
+    } catch (error) {
+        console.error('[Firebase] Init error:', error);
+        Core.SystemLogs.write('<span style="color:#ef4444;">✗</span> Firebase connection failed. Offline mode.');
+    }
+}
+
+// ============================================
+// FIRESTORE OPERATIONS
+// ============================================
+const FirestoreDB = {
+    // Save dashboard settings
+    saveSettings: async function (data) {
+        if (!firebaseReady || !db) {
+            localStorage.setItem('doni_admin_state', JSON.stringify(data));
+            return { success: true, source: 'localStorage' };
+        }
+
+        try {
+            await db.collection('dashboard').doc('settings').set({
+                ...data,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            // Also save to localStorage as backup
+            localStorage.setItem('doni_admin_state', JSON.stringify(data));
+
+            console.log('[Firestore] Settings saved');
+            return { success: true, source: 'firestore' };
+        } catch (error) {
+            console.error('[Firestore] Save error:', error);
+            localStorage.setItem('doni_admin_state', JSON.stringify(data));
+            return { success: false, source: 'localStorage', error };
+        }
+    },
+
+    // Load dashboard settings
+    loadSettings: async function () {
+        if (!firebaseReady || !db) {
+            const local = localStorage.getItem('doni_admin_state');
+            return local ? JSON.parse(local) : null;
+        }
+
+        try {
+            const doc = await db.collection('dashboard').doc('settings').get();
+            if (doc.exists) {
+                console.log('[Firestore] Settings loaded');
+                return doc.data();
+            }
+            return null;
+        } catch (error) {
+            console.error('[Firestore] Load error:', error);
+            const local = localStorage.getItem('doni_admin_state');
+            return local ? JSON.parse(local) : null;
+        }
+    },
+
+    // Add deployment log entry
+    addLogEntry: async function (message, type = 'info') {
+        if (!firebaseReady || !db) return;
+
+        try {
+            await db.collection('logs').add({
+                message,
+                type,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error('[Firestore] Log write error:', error);
+        }
+    },
+
+    // Get recent logs
+    getRecentLogs: async function (limit = 10) {
+        if (!firebaseReady || !db) return [];
+
+        try {
+            const snapshot = await db.collection('logs')
+                .orderBy('timestamp', 'desc')
+                .limit(limit)
+                .get();
+
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error('[Firestore] Log read error:', error);
+            return [];
+        }
+    }
+};
+
+// ============================================
+// REAL-TIME SYNC LISTENER
+// ============================================
+function initRealtimeSync() {
+    if (!firebaseReady || !db) return;
+
+    // Listen for settings changes in real-time
+    db.collection('dashboard').doc('settings')
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                applySettingsToUI(data);
+                console.log('[Firestore] Real-time update received');
+            }
+        }, (error) => {
+            console.error('[Firestore] Listener error:', error);
+        });
+
+    Core.SystemLogs.write('<span style="color:#3b82f6;">↻</span> Real-time sync active.');
+}
+
+// Apply settings data to the UI
+function applySettingsToUI(data) {
+    if (!data) return;
+
+    const titleEl = document.getElementById('project-title-heading');
+    const descEl = document.getElementById('project-desc-text');
+    const statusTextEl = document.getElementById('status-text');
+    const discordEl = document.getElementById('discord-activity-txt');
+    const dot = document.getElementById('status-dot');
+
+    if (data.title && titleEl) titleEl.innerText = data.title;
+    if (data.desc && descEl) descEl.innerText = data.desc;
+    if (data.status && statusTextEl) statusTextEl.innerText = data.status;
+    if (data.discord && discordEl) discordEl.innerText = data.discord;
+
+    // Update status dot color
+    if (data.status && dot) {
+        if (data.status === 'Active') {
+            dot.style.background = '#22c55e';
+            dot.style.boxShadow = '0 0 10px #22c55e';
+        } else if (data.status === 'Building') {
+            dot.style.background = '#eab308';
+            dot.style.boxShadow = '0 0 10px #eab308';
+        } else {
+            dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 10px #ef4444';
+        }
+    }
+
+    // Also update admin form fields if they exist
+    const adminTitle = document.getElementById('admin-proj-title');
+    const adminDesc = document.getElementById('admin-proj-desc');
+    const adminStatus = document.getElementById('admin-status-select');
+    const adminDiscord = document.getElementById('admin-discord-msg');
+
+    if (data.title && adminTitle) adminTitle.value = data.title;
+    if (data.desc && adminDesc) adminDesc.value = data.desc;
+    if (data.status && adminStatus) adminStatus.value = data.status;
+    if (data.discord && adminDiscord) adminDiscord.value = data.discord;
+}
+
+// ============================================
+// ENVIRONMENT DETECTION
+// ============================================
 const isLocal = window.location.protocol === 'file:';
 
 // ============================================
@@ -22,6 +211,11 @@ const Core = {
             line.innerHTML = isUserCommand ? `&gt; ${msg}` : msg;
             this.target.appendChild(line);
             this.target.scrollTop = this.target.scrollHeight;
+
+            // Also log to Firestore (non-blocking)
+            if (firebaseReady && !isUserCommand) {
+                FirestoreDB.addLogEntry(msg.replace(/<[^>]*>/g, ''), 'system');
+            }
         },
         clear: function () {
             if (this.target) this.target.innerHTML = '';
@@ -36,6 +230,7 @@ const Core = {
             'admin': 'Open Admin Settings Panel.',
             'discord': 'Inspect & manage Discord integration.',
             'firebase': 'Check real-time Firebase sync status.',
+            'sync': 'Force sync with Firebase.',
             'home': 'Navigate to Dashboard.',
             'projects': 'Navigate to Projects page.',
             'about': 'Navigate to About page.',
@@ -59,7 +254,8 @@ const Core = {
                 Core.SystemLogs.clear();
             }
             else if (trigger === 'status') {
-                Core.SystemLogs.write("Subsystems: operational.<br>Database Instance: connected.");
+                const fbStatus = firebaseReady ? '<span style="color:#22c55e;">connected</span>' : '<span style="color:#ef4444;">disconnected</span>';
+                Core.SystemLogs.write(`Subsystems: operational.<br>Firebase: ${fbStatus}<br>Database: aboutme-8a339`);
             }
             else if (trigger === 'ping') {
                 const latencyEl = document.getElementById('latency-val');
@@ -76,7 +272,22 @@ const Core = {
                 Core.SystemLogs.write(`Discord RPC: Configured.<br>&gt; Activity: ${status}`);
             }
             else if (trigger === 'firebase') {
-                Core.SystemLogs.write("Firebase Sync: Subscribed to 'dashboard/state'.");
+                if (firebaseReady) {
+                    Core.SystemLogs.write(`Firebase Status: <span style="color:#22c55e;">ONLINE</span><br>Project: aboutme-8a339<br>Firestore: Real-time sync active`);
+                } else {
+                    Core.SystemLogs.write(`Firebase Status: <span style="color:#ef4444;">OFFLINE</span><br>Using localStorage fallback.`);
+                }
+            }
+            else if (trigger === 'sync') {
+                Core.SystemLogs.write("Forcing Firebase sync...");
+                FirestoreDB.loadSettings().then(data => {
+                    if (data) {
+                        applySettingsToUI(data);
+                        Core.SystemLogs.write('<span style="color:#22c55e;">✓</span> Sync complete.');
+                    } else {
+                        Core.SystemLogs.write('<span style="color:#eab308;">⚠</span> No remote data found.');
+                    }
+                });
             }
             else if (trigger === 'home') {
                 window.location.href = 'index.html';
@@ -157,7 +368,7 @@ function updateLatency() {
         display.innerText = `[LOG] Sync Status: ${diff}ms`;
         animateSparklines(diff);
     }).catch(() => {
-        display.innerText = `[LOG] Sync Status: Local Sandbox Mode Active`;
+        display.innerText = `[LOG] Sync Status: Offline`;
     });
 }
 
@@ -286,44 +497,44 @@ function initAdminPanel() {
     const clearLogsBtn = document.getElementById('clear-logs-btn');
     const saveAdminBtn = document.getElementById('save-admin-btn');
 
-    if (logoBtn) logoBtn.addEventListener('click', () => toggleAdminModal(true));
+    if (logoBtn) logoBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleAdminModal(true);
+    });
     if (statusBtn) statusBtn.addEventListener('click', () => toggleAdminModal(true));
     if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => toggleAdminModal(false));
     if (clearLogsBtn) clearLogsBtn.addEventListener('click', () => Core.SystemLogs.clear());
 
     if (saveAdminBtn) {
-        saveAdminBtn.addEventListener('click', () => {
+        saveAdminBtn.addEventListener('click', async () => {
             const title = document.getElementById('admin-proj-title')?.value || '';
             const desc = document.getElementById('admin-proj-desc')?.value || '';
             const status = document.getElementById('admin-status-select')?.value || 'Active';
             const discord = document.getElementById('admin-discord-msg')?.value || '';
 
-            const titleEl = document.getElementById('project-title-heading');
-            const descEl = document.getElementById('project-desc-text');
-            const statusTextEl = document.getElementById('status-text');
-            const discordEl = document.getElementById('discord-activity-txt');
+            const data = { title, desc, status, discord };
 
-            if (titleEl) titleEl.innerText = title;
-            if (descEl) descEl.innerText = desc;
-            if (statusTextEl) statusTextEl.innerText = status;
-            if (discordEl) discordEl.innerText = discord;
+            // Update UI immediately
+            applySettingsToUI(data);
 
-            const dot = document.getElementById('status-dot');
-            if (dot) {
-                if (status === 'Active') {
-                    dot.style.background = '#22c55e';
-                    dot.style.boxShadow = '0 0 10px #22c55e';
-                } else if (status === 'Building') {
-                    dot.style.background = '#eab308';
-                    dot.style.boxShadow = '0 0 10px #eab308';
+            // Save to Firebase (and localStorage as backup)
+            saveAdminBtn.innerText = 'Saving...';
+            saveAdminBtn.disabled = true;
+
+            const result = await FirestoreDB.saveSettings(data);
+
+            if (result.success) {
+                if (result.source === 'firestore') {
+                    Core.SystemLogs.write('<span style="color:#22c55e;">✓</span> Settings synced to Firebase.');
                 } else {
-                    dot.style.background = '#ef4444';
-                    dot.style.boxShadow = '0 0 10px #ef4444';
+                    Core.SystemLogs.write('<span style="color:#eab308;">⚠</span> Saved locally (Firebase offline).');
                 }
+            } else {
+                Core.SystemLogs.write('<span style="color:#ef4444;">✗</span> Save failed. Stored locally.');
             }
 
-            localStorage.setItem('doni_admin_state', JSON.stringify({ title, desc, status, discord }));
-            Core.SystemLogs.write("Admin settings saved & synced.");
+            saveAdminBtn.innerText = 'Save & Sync Dashboard';
+            saveAdminBtn.disabled = false;
             toggleAdminModal(false);
         });
     }
@@ -375,39 +586,23 @@ function initPreviewControls() {
 }
 
 // ============================================
-// LOAD PERSISTED STATE
+// LOAD PERSISTED STATE (with Firebase priority)
 // ============================================
-function loadPersistedState() {
-    const saved = localStorage.getItem('doni_admin_state');
-    if (saved) {
+async function loadPersistedState() {
+    // First, try to load from localStorage for immediate display
+    const localData = localStorage.getItem('doni_admin_state');
+    if (localData) {
         try {
-            const data = JSON.parse(saved);
-            const titleEl = document.getElementById('project-title-heading');
-            const descEl = document.getElementById('project-desc-text');
-            const statusTextEl = document.getElementById('status-text');
-            const discordEl = document.getElementById('discord-activity-txt');
-
-            if (data.title && titleEl) titleEl.innerText = data.title;
-            if (data.desc && descEl) descEl.innerText = data.desc;
-            if (data.status && statusTextEl) statusTextEl.innerText = data.status;
-            if (data.discord && discordEl) discordEl.innerText = data.discord;
-
-            if (data.status) {
-                const dot = document.getElementById('status-dot');
-                if (dot) {
-                    if (data.status === 'Active') {
-                        dot.style.background = '#22c55e';
-                        dot.style.boxShadow = '0 0 10px #22c55e';
-                    } else if (data.status === 'Building') {
-                        dot.style.background = '#eab308';
-                        dot.style.boxShadow = '0 0 10px #eab308';
-                    } else {
-                        dot.style.background = '#ef4444';
-                        dot.style.boxShadow = '0 0 10px #ef4444';
-                    }
-                }
-            }
+            applySettingsToUI(JSON.parse(localData));
         } catch (e) { }
+    }
+
+    // Then, if Firebase is ready, load from Firestore (will override via real-time listener)
+    if (firebaseReady) {
+        const firestoreData = await FirestoreDB.loadSettings();
+        if (firestoreData) {
+            applySettingsToUI(firestoreData);
+        }
     }
 }
 
@@ -418,35 +613,63 @@ function initContactForm() {
     const form = document.getElementById('contact-form');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('contact-name')?.value || '';
         const email = document.getElementById('contact-email')?.value || '';
+        const subject = document.getElementById('contact-subject')?.value || 'No subject';
         const message = document.getElementById('contact-message')?.value || '';
         const statusEl = document.getElementById('form-status');
 
         if (!name || !email || !message) {
             if (statusEl) {
-                statusEl.innerText = 'Please fill all fields.';
+                statusEl.innerText = 'Please fill all required fields.';
                 statusEl.style.color = '#ef4444';
             }
             return;
         }
 
-        // Simulate send (replace with actual API call later)
         if (statusEl) {
             statusEl.innerText = 'Sending...';
             statusEl.style.color = '#eab308';
         }
 
-        setTimeout(() => {
-            if (statusEl) {
-                statusEl.innerText = 'Message sent successfully! I\'ll get back to you soon.';
-                statusEl.style.color = '#22c55e';
+        // Save to Firestore
+        if (firebaseReady && db) {
+            try {
+                await db.collection('messages').add({
+                    name,
+                    email,
+                    subject,
+                    message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    read: false
+                });
+
+                if (statusEl) {
+                    statusEl.innerText = 'Message sent successfully! I\'ll get back to you soon.';
+                    statusEl.style.color = '#22c55e';
+                }
+                form.reset();
+                Core.SystemLogs.write(`<span style="color:#22c55e;">✓</span> Message from ${name} saved to Firebase.`);
+            } catch (error) {
+                console.error('[Contact] Save error:', error);
+                if (statusEl) {
+                    statusEl.innerText = 'Error sending message. Please try again.';
+                    statusEl.style.color = '#ef4444';
+                }
             }
-            form.reset();
-            Core.SystemLogs.write(`Contact form submitted by ${name}.`);
-        }, 1200);
+        } else {
+            // Fallback - just show success (no actual storage)
+            setTimeout(() => {
+                if (statusEl) {
+                    statusEl.innerText = 'Message sent! (Demo mode - Firebase offline)';
+                    statusEl.style.color = '#22c55e';
+                }
+                form.reset();
+                Core.SystemLogs.write(`Contact form submitted by ${name}. (Local only)`);
+            }, 1000);
+        }
     });
 }
 
@@ -461,7 +684,12 @@ function init() {
     initAdminPanel();
     initPreviewControls();
     initContactForm();
-    loadPersistedState();
+
+    // Initialize Firebase after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        initFirebase();
+        loadPersistedState();
+    }, 100);
 
     updateTime();
     updateLatency();

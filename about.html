@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | DONI DEV</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <a href="index.html" class="logo">
+            <span>DONI</span>
+            <span class="logo-badge">v1.2</span>
+        </a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html" class="active">About</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="status" id="status-btn">
+            <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
+        </div>
+    </header>
+
+    <div class="grid-container">
+        <!-- Main Bio Card -->
+        <div class="bento-card span-2 row-span-2">
+            <p
+                style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 16px;">
+                About Me</p>
+            <h1 style="font-size: 2.8rem; line-height: 1.15; margin-bottom: 20px;">Developer, Builder,<br>Problem
+                Solver.</h1>
+
+            <p style="font-size: 1rem; line-height: 1.8; margin-bottom: 16px;">
+                I'm <strong style="color: #fff;">Doni</strong> — a full-stack developer passionate about crafting clean,
+                functional, and visually compelling digital experiences. I thrive at the intersection of design and
+                engineering.
+            </p>
+            <p style="font-size: 1rem; line-height: 1.8; margin-bottom: 16px;">
+                My work spans from building real-time sync systems and Discord integrations to designing modular
+                dashboard architectures like the one you're exploring right now. I believe in writing code that's not
+                just functional, but elegant.
+            </p>
+            <p style="font-size: 1rem; line-height: 1.8; margin-bottom: 24px;">
+                When I'm not coding, you'll find me experimenting with new frameworks, contributing to open source, or
+                optimizing systems for that extra millisecond of performance.
+            </p>
+
+            <div style="display: flex; gap: 12px;">
+                <a href="contact.html" class="custom-btn" style="text-decoration: none;">Get In Touch</a>
+                <a href="projects.html" class="custom-btn secondary" style="text-decoration: none;">View Projects</a>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="bento-card">
+            <h3>Quick Stats</h3>
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Years Coding</span>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: var(--accent-green);">5+</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Projects Completed</span>
+                    <span style="font-size: 1.4rem; font-weight: 800;">20+</span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Cups of Coffee</span>
+                    <span style="font-size: 1.4rem; font-weight: 800; color: var(--accent-yellow);">∞</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-muted); font-size: 0.85rem;">Current Status</span>
+                    <span class="tag green" style="margin: 0;">Available</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location/Timezone -->
+        <div class="bento-card">
+            <h3>Location</h3>
+            <p style="margin-top: 10px;">Based remotely, working globally.</p>
+            <div style="margin-top: auto; padding-top: 20px;">
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Current Local Time
+                    </div>
+                    <div id="time-display" style="font-size: 1.3rem; font-weight: 600; font-family: monospace;">
+                        Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="bento-card span-2">
+            <h3>Tech Stack & Tools</h3>
+            <p>Technologies I work with daily and have deep experience in.</p>
+
+            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">⚡</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">JavaScript</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">ES6+ / Vanilla</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🟢</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">Node.js</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Backend / APIs</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🔥</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">Firebase</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Real-time DB</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🎨</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">CSS</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Grid / Flexbox</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🤖</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">Discord.js</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Bot Development</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🗄️</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">MongoDB</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">NoSQL</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">🐙</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">Git</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">Version Control</div>
+                </div>
+                <div
+                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 6px;">💻</div>
+                    <div style="font-weight: 600; font-size: 0.85rem;">VS Code</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">IDE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currently Working On -->
+        <div class="bento-card">
+            <h3>Currently Working On</h3>
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px;">
+                    <span
+                        style="width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 8px var(--accent-green);"></span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem;">DONI Dashboard v2</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Firebase integration & admin panel
+                        </div>
+                    </div>
+                </div>
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <span style="width: 8px; height: 8px; background: var(--accent-purple); border-radius: 50%;"></span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.85rem;">Discord RPC Module</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Cross-platform presence sync</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2024 DONI. All systems operational.</div>
+        <div class="footer-links">
+            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+            <a href="contact.html">Contact</a>
+        </div>
+    </footer>
+
+    <!-- Command Palette Modal -->
+    <div id="cmd-palette"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; backdrop-filter: blur(5px); justify-content: center; align-items: flex-start; padding-top: 100px;">
+        <div
+            style="background: #111; width: 520px; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Command
+                    Routing Palette</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">[ESC] Close</span>
+            </div>
+            <input type="text" id="cmd-input" placeholder="Type a command... (home, projects, contact)"
+                style="width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+
+            <div style="margin-top: 14px;">
+                <div class="cmd-hint" onclick="selectCmd('home')"><span>> home</span><span>Go to Dashboard</span></div>
+                <div class="cmd-hint" onclick="selectCmd('projects')"><span>> projects</span><span>View my work</span>
+                </div>
+                <div class="cmd-hint" onclick="selectCmd('contact')"><span>> contact</span><span>Get in touch</span>
+                </div>
+                <div class="cmd-hint" onclick="selectCmd('help')"><span>> help</span><span>Show all commands</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
