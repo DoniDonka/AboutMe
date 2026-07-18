@@ -17,7 +17,7 @@
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
-            <span class="logo-badge">v3.0</span>
+            <span class="logo-badge">v3.2</span>
         </a>
         <nav class="nav-links">
             <a href="index.html" class="active">Dashboard</a>
@@ -33,6 +33,7 @@
         <div class="status" id="status-btn" title="Toggle System Status / Settings">
             <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
         </div>
+        <span id="availability-badge" class="availability-badge" style="display:none;"></span>
     </header>
 
     <div class="grid-container">
@@ -234,6 +235,66 @@
                 </div>
             </div>
         </div>
+
+        <!-- Card: Discord Live Status -->
+        <div class="bento-card widget-card" data-widget="discord">
+            <div class="widget-head"><h2>Discord</h2><span class="widget-tag">Lanyard</span></div>
+            <div id="w-discord-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Now Playing -->
+        <div class="bento-card widget-card" data-widget="music">
+            <div class="widget-head"><h2>Now Playing</h2><span class="widget-tag">Music</span></div>
+            <div id="w-music-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Steam -->
+        <div class="bento-card widget-card" data-widget="steam">
+            <div class="widget-head"><h2>Steam</h2><span class="widget-tag">Gaming</span></div>
+            <div id="w-steam-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: GitHub Activity -->
+        <div class="bento-card span-2 widget-card" data-widget="github">
+            <div class="widget-head"><h2>GitHub Activity</h2><span class="widget-tag">@DoniDonka</span></div>
+            <div id="w-github-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Roblox Stats -->
+        <div class="bento-card widget-card" data-widget="roblox">
+            <div class="widget-head"><h2>Roblox</h2><span class="widget-tag">Builds</span></div>
+            <div id="w-roblox-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Tech Stack -->
+        <div class="bento-card span-2 widget-card" data-widget="techstack">
+            <div class="widget-head"><h2>Tech Stack</h2><span class="widget-tag">Proficiency</span></div>
+            <div class="tech-grid">
+                <div class="tech-item" data-level="Advanced" style="--tc:#3c873a"><span class="tech-ico">⬢</span><span class="tech-name">Node.js</span></div>
+                <div class="tech-item" data-level="Advanced" style="--tc:#f5820d"><span class="tech-ico">🔥</span><span class="tech-name">Firebase</span></div>
+                <div class="tech-item" data-level="Expert" style="--tc:#e34f26"><span class="tech-ico">◆</span><span class="tech-name">HTML/CSS</span></div>
+                <div class="tech-item" data-level="Advanced" style="--tc:#f7df1e"><span class="tech-ico">JS</span><span class="tech-name">JavaScript</span></div>
+                <div class="tech-item" data-level="Intermediate" style="--tc:#5865F2"><span class="tech-ico">🤖</span><span class="tech-name">Discord.js</span></div>
+                <div class="tech-item" data-level="Intermediate" style="--tc:#00a2ff"><span class="tech-ico">▲</span><span class="tech-name">Luau</span></div>
+            </div>
+        </div>
+
+        <!-- Card: Hardware / Sim Setup -->
+        <div class="bento-card widget-card" data-widget="hardware">
+            <div class="widget-head"><h2>Setup</h2><span class="widget-tag">Rig &amp; Sim</span></div>
+            <div class="hw-list">
+                <div class="hw-item"><span class="hw-ico">💻</span><div><div class="hw-name">Acer Nitro 5</div><div class="hw-detail">Ryzen 5 · RTX · 16GB</div></div></div>
+                <div class="hw-item"><span class="hw-ico">📱</span><div><div class="hw-name">Galaxy S24 FE</div><div class="hw-detail">Daily driver</div></div></div>
+                <div class="hw-item"><span class="hw-ico">🎮</span><div><div class="hw-name">Logitech G29</div><div class="hw-detail">Wheel + pedals</div></div></div>
+                <div class="hw-item"><span class="hw-ico">⌨️</span><div><div class="hw-name">Mech Keyboard</div><div class="hw-detail">Coding &amp; racing</div></div></div>
+            </div>
+        </div>
+
+        <!-- Card: Latest Updates (admin quick-post) -->
+        <div class="bento-card widget-card" data-widget="updates">
+            <div class="widget-head"><h2>Latest Updates</h2><span class="widget-tag">Notes</span></div>
+            <div id="w-updates-body" class="widget-body"><div class="widget-hint">No updates yet.</div></div>
+        </div>
     </div>
 
     <footer>
@@ -314,6 +375,7 @@
                     <button class="admin-tab-btn" data-atab="tags">Tags</button>
                     <button class="admin-tab-btn" data-atab="guestbook">Guestbook</button>
                     <button class="admin-tab-btn" data-atab="messages">Messages</button>
+                    <button class="admin-tab-btn" data-atab="live">Live</button>
                 </div>
 
                 <!-- Content tab -->
@@ -390,6 +452,36 @@
                     </div>
                     <div class="admin-list" id="admin-messages-list"><div class="admin-list-empty">Loading…</div></div>
                 </div>
+
+                <!-- Live power-ups tab -->
+                <div class="admin-tab-pane" id="atab-live">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Live Traffic</label>
+                        <div class="live-stats-row">
+                            <div class="live-stat"><div class="live-stat-num" id="admin-online-count">—</div><div class="live-stat-lbl">online now</div></div>
+                            <div class="live-stat"><div class="live-stat-num" id="admin-total-views">—</div><div class="live-stat-lbl">total views</div></div>
+                            <button id="admin-analytics-refresh" class="snippet-btn">↻</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Availability / Status Override</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="admin-avail-input" class="custom-input" placeholder="e.g. Open to work, Busy coding, Racing">
+                            <button id="admin-avail-save" class="custom-btn secondary">Set</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Quick-Post → Latest Updates</label>
+                        <textarea id="admin-post-input" class="custom-input" rows="3" placeholder="Markdown ok: **bold**, *italic*, `code`, [link](url)"></textarea>
+                        <div style="padding-top: 6px; display: flex; justify-content: flex-end;">
+                            <button id="admin-post-save" class="custom-btn green">Publish Note</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Feature Toggles (show / hide cards)</label>
+                        <div class="toggle-grid" id="admin-toggle-row"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -404,6 +496,8 @@
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="widgets.js"></script>
 </body>
 
 </html>

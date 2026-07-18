@@ -15,7 +15,7 @@
 
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.0</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.2</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -40,7 +40,20 @@
         <div class="bento-card span-3">
             <div class="changelog-list">
                 <div class="changelog-version">
-                    <div class="changelog-badge current">v3.1.0</div>
+                    <div class="changelog-badge current">v3.2.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Live widgets — Discord (Lanyard), GitHub activity + contribution grid, Now Playing (Last.fm), Steam, Roblox profile</li>
+                        <li><span class="cl-tag added">Added</span> Interactive Tech Stack grid (3D glass hover) &amp; Hardware/Sim setup card</li>
+                        <li><span class="cl-tag added">Added</span> Admin power-ups — live traffic (online-now + views), status override badge, quick-post notes → Latest Updates card, feature toggles</li>
+                        <li><span class="cl-tag added">Added</span> Enhancements — scroll reveals, 3D card tilt, cursor glow, count-ups, ripples, network toasts, greeting, active-nav</li>
+                        <li><span class="cl-tag added">Added</span> Keyboard shortcuts (<code>?</code> help, <code>/</code> palette, <code>g</code>+key nav) &amp; secret easter eggs (type <code>matrix</code>, <code>party</code>, <code>rainbow</code>, <code>credits</code>)</li>
+                        <li><span class="cl-tag changed">Changed</span> Firestore rules add a <code>presence</code> collection for the live online counter</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v3.1.0</div>
                     <div class="changelog-date">Jul 18, 2026</div>
                     <ul>
                         <li><span class="cl-tag added">Added</span> Firebase Auth (email/password) admin sign-in — replaces the client-side passcode gate</li>
@@ -144,6 +157,7 @@
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
 </body>
 
 </html>

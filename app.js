@@ -204,6 +204,9 @@ function applySettingsToUI(data) {
         if (typeof applyTagsToUI === 'function') applyTagsToUI(data.tags);
         if (typeof renderAdminTags === 'function') renderAdminTags();
     }
+
+    // Live widgets: availability badge, latest-update note, feature toggles
+    if (typeof Widgets !== 'undefined' && Widgets.applySettings) Widgets.applySettings(data);
 }
 
 // ============================================
