@@ -6,13 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DONI | DEV</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
 </head>
 
 <body>
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
-            <span class="logo-badge">v2.0</span>
+            <span class="logo-badge">v3.2</span>
         </a>
         <nav class="nav-links">
             <a href="index.html" class="active">Dashboard</a>
@@ -28,6 +33,7 @@
         <div class="status" id="status-btn" title="Toggle System Status / Settings">
             <div class="dot" id="status-dot"></div> <span id="status-text">Active</span>
         </div>
+        <span id="availability-badge" class="availability-badge" style="display:none;"></span>
     </header>
 
     <div class="grid-container">
@@ -229,6 +235,66 @@
                 </div>
             </div>
         </div>
+
+        <!-- Card: Discord Live Status -->
+        <div class="bento-card widget-card" data-widget="discord">
+            <div class="widget-head"><h2>Discord</h2><span class="widget-tag">Lanyard</span></div>
+            <div id="w-discord-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Now Playing -->
+        <div class="bento-card widget-card" data-widget="music">
+            <div class="widget-head"><h2>Now Playing</h2><span class="widget-tag">Music</span></div>
+            <div id="w-music-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Steam -->
+        <div class="bento-card widget-card" data-widget="steam">
+            <div class="widget-head"><h2>Steam</h2><span class="widget-tag">Gaming</span></div>
+            <div id="w-steam-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: GitHub Activity -->
+        <div class="bento-card span-2 widget-card" data-widget="github">
+            <div class="widget-head"><h2>GitHub Activity</h2><span class="widget-tag">@DoniDonka</span></div>
+            <div id="w-github-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Roblox Stats -->
+        <div class="bento-card widget-card" data-widget="roblox">
+            <div class="widget-head"><h2>Roblox</h2><span class="widget-tag">Builds</span></div>
+            <div id="w-roblox-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+        </div>
+
+        <!-- Card: Tech Stack -->
+        <div class="bento-card span-2 widget-card" data-widget="techstack">
+            <div class="widget-head"><h2>Tech Stack</h2><span class="widget-tag">Proficiency</span></div>
+            <div class="tech-grid">
+                <div class="tech-item" data-level="Advanced" style="--tc:#3c873a"><span class="tech-ico">⬢</span><span class="tech-name">Node.js</span></div>
+                <div class="tech-item" data-level="Advanced" style="--tc:#f5820d"><span class="tech-ico">🔥</span><span class="tech-name">Firebase</span></div>
+                <div class="tech-item" data-level="Expert" style="--tc:#e34f26"><span class="tech-ico">◆</span><span class="tech-name">HTML/CSS</span></div>
+                <div class="tech-item" data-level="Advanced" style="--tc:#f7df1e"><span class="tech-ico">JS</span><span class="tech-name">JavaScript</span></div>
+                <div class="tech-item" data-level="Intermediate" style="--tc:#5865F2"><span class="tech-ico">🤖</span><span class="tech-name">Discord.js</span></div>
+                <div class="tech-item" data-level="Intermediate" style="--tc:#00a2ff"><span class="tech-ico">▲</span><span class="tech-name">Luau</span></div>
+            </div>
+        </div>
+
+        <!-- Card: Hardware / Sim Setup -->
+        <div class="bento-card widget-card" data-widget="hardware">
+            <div class="widget-head"><h2>Setup</h2><span class="widget-tag">Rig &amp; Sim</span></div>
+            <div class="hw-list">
+                <div class="hw-item"><span class="hw-ico">💻</span><div><div class="hw-name">Acer Nitro 5</div><div class="hw-detail">Ryzen 5 · RTX · 16GB</div></div></div>
+                <div class="hw-item"><span class="hw-ico">📱</span><div><div class="hw-name">Galaxy S24 FE</div><div class="hw-detail">Daily driver</div></div></div>
+                <div class="hw-item"><span class="hw-ico">🎮</span><div><div class="hw-name">Logitech G29</div><div class="hw-detail">Wheel + pedals</div></div></div>
+                <div class="hw-item"><span class="hw-ico">⌨️</span><div><div class="hw-name">Mech Keyboard</div><div class="hw-detail">Coding &amp; racing</div></div></div>
+            </div>
+        </div>
+
+        <!-- Card: Latest Updates (admin quick-post) -->
+        <div class="bento-card widget-card" data-widget="updates">
+            <div class="widget-head"><h2>Latest Updates</h2><span class="widget-tag">Notes</span></div>
+            <div id="w-updates-body" class="widget-body"><div class="widget-hint">No updates yet.</div></div>
+        </div>
     </div>
 
     <footer>
@@ -289,54 +355,133 @@
                 </div>
             </div>
 
-            <!-- Passcode Lock Screen -->
+            <!-- Firebase Auth Login -->
             <div id="admin-lock-screen" class="admin-lock-screen">
                 <div class="admin-lock-icon">🔒</div>
-                <h3 style="margin-bottom: 4px;">Admin Access Required</h3>
-                <p>Enter passcode to unlock dashboard controls. Client-side only — deters casual access.</p>
-                <div class="admin-passcode-row">
-                    <input type="password" id="admin-passcode-input" class="custom-input" placeholder="••••••••" autocomplete="off">
-                    <button id="admin-unlock-btn" class="custom-btn green">Unlock</button>
+                <h3 style="margin-bottom: 4px;">Admin Sign In</h3>
+                <p>Sign in with your Firebase account to manage the dashboard. Access is enforced server-side by Firestore rules.</p>
+                <div class="admin-passcode-row" style="flex-direction: column; gap: 8px;">
+                    <input type="email" id="admin-email-input" class="custom-input" placeholder="Email" autocomplete="username" style="width: 100%;">
+                    <input type="password" id="admin-passcode-input" class="custom-input" placeholder="Password" autocomplete="current-password" style="width: 100%;">
+                    <button id="admin-unlock-btn" class="custom-btn green" style="width: 100%;">Sign In</button>
                 </div>
                 <div id="admin-lock-error" class="admin-lock-error"></div>
             </div>
 
             <div id="admin-panel-content">
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div>
-                    <label
-                        style="font-size: 0.8rem; font-weight: 600; color: #fff; display: block; margin-bottom: 6px;">Featured
-                        Project Title</label>
-                    <input type="text" id="admin-proj-title" class="custom-input" value="Building Creative Interfaces">
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" data-atab="content">Content</button>
+                    <button class="admin-tab-btn" data-atab="appearance">Appearance</button>
+                    <button class="admin-tab-btn" data-atab="tags">Tags</button>
+                    <button class="admin-tab-btn" data-atab="guestbook">Guestbook</button>
+                    <button class="admin-tab-btn" data-atab="messages">Messages</button>
+                    <button class="admin-tab-btn" data-atab="live">Live</button>
                 </div>
-                <div>
-                    <label
-                        style="font-size: 0.8rem; font-weight: 600; color: #fff; display: block; margin-bottom: 6px;">Description</label>
-                    <input type="text" id="admin-proj-desc" class="custom-input"
-                        value="Modular full-stack dashboard ecosystem featuring live RPC telemetry.">
+
+                <!-- Content tab -->
+                <div class="admin-tab-pane active" id="atab-content">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Featured Project Title</label>
+                        <input type="text" id="admin-proj-title" class="custom-input" value="Building Creative Interfaces">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Description</label>
+                        <input type="text" id="admin-proj-desc" class="custom-input" value="Modular full-stack dashboard ecosystem featuring live RPC telemetry.">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">System Status Indicator</label>
+                        <select id="admin-status-select" class="custom-input" style="background:var(--input-bg); color:var(--text-main);">
+                            <option value="Active">Active (Green)</option>
+                            <option value="Building">Building (Yellow)</option>
+                            <option value="Maintenance">Maintenance (Red)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Discord Presence Message</label>
+                        <input type="text" id="admin-discord-msg" class="custom-input" value="Playing Visual Studio Code - DONI | DEV Engine">
+                    </div>
+                    <div style="padding-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="save-admin-btn" class="custom-btn green">Save &amp; Sync Dashboard</button>
+                    </div>
                 </div>
-                <div>
-                    <label
-                        style="font-size: 0.8rem; font-weight: 600; color: #fff; display: block; margin-bottom: 6px;">System
-                        Status Indicator</label>
-                    <select id="admin-status-select" class="custom-input" style="background:#0a0a0a; color:#fff;">
-                        <option value="Active">Active (Green)</option>
-                        <option value="Building">Building (Yellow)</option>
-                        <option value="Maintenance">Maintenance (Red)</option>
-                    </select>
+
+                <!-- Appearance tab -->
+                <div class="admin-tab-pane" id="atab-appearance">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Theme</label>
+                        <button id="admin-theme-btn" class="custom-btn secondary">Toggle Light / Dark</button>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Accent Color</label>
+                        <div class="tag-editor" id="admin-accent-row"></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Interface Sound FX</label>
+                        <button id="admin-sound-btn" class="custom-btn secondary">Toggle Sound</button>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Site Lock</label>
+                        <button id="admin-sitelock-btn" class="custom-btn secondary">🔒 Lock Entire Site</button>
+                    </div>
                 </div>
-                <div>
-                    <label
-                        style="font-size: 0.8rem; font-weight: 600; color: #fff; display: block; margin-bottom: 6px;">Discord
-                        Presence Message</label>
-                    <input type="text" id="admin-discord-msg" class="custom-input"
-                        value="Playing Visual Studio Code - DONI | DEV Engine">
+
+                <!-- Tags tab -->
+                <div class="admin-tab-pane" id="atab-tags">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block;">Featured Project Tags</label>
+                    <div class="tag-editor" id="admin-tags-editor"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="admin-tag-input" class="custom-input" placeholder="Add a tag and press Enter">
+                        <button id="admin-tag-add" class="custom-btn secondary">Add</button>
+                    </div>
+                    <div style="padding-top: 6px; display: flex; justify-content: flex-end;">
+                        <button id="admin-tags-save" class="custom-btn green">Save Tags</button>
+                    </div>
                 </div>
-                <div style="padding-top: 10px; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button id="save-admin-btn" class="custom-btn" style="background: #22c55e; color: #000;">Save &amp;
-                        Sync Dashboard</button>
+
+                <!-- Guestbook tab -->
+                <div class="admin-tab-pane" id="atab-guestbook">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block;">Guestbook Entries (local)</label>
+                    <div class="admin-list" id="admin-guestbook-list"></div>
                 </div>
-            </div>
+
+                <!-- Messages tab -->
+                <div class="admin-tab-pane" id="atab-messages">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Contact Messages (Firestore)</label>
+                        <button id="admin-messages-refresh" class="snippet-btn">↻ Refresh</button>
+                    </div>
+                    <div class="admin-list" id="admin-messages-list"><div class="admin-list-empty">Loading…</div></div>
+                </div>
+
+                <!-- Live power-ups tab -->
+                <div class="admin-tab-pane" id="atab-live">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Live Traffic</label>
+                        <div class="live-stats-row">
+                            <div class="live-stat"><div class="live-stat-num" id="admin-online-count">—</div><div class="live-stat-lbl">online now</div></div>
+                            <div class="live-stat"><div class="live-stat-num" id="admin-total-views">—</div><div class="live-stat-lbl">total views</div></div>
+                            <button id="admin-analytics-refresh" class="snippet-btn">↻</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Availability / Status Override</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="admin-avail-input" class="custom-input" placeholder="e.g. Open to work, Busy coding, Racing">
+                            <button id="admin-avail-save" class="custom-btn secondary">Set</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Quick-Post → Latest Updates</label>
+                        <textarea id="admin-post-input" class="custom-input" rows="3" placeholder="Markdown ok: **bold**, *italic*, `code`, [link](url)"></textarea>
+                        <div style="padding-top: 6px; display: flex; justify-content: flex-end;">
+                            <button id="admin-post-save" class="custom-btn green">Publish Note</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Feature Toggles (show / hide cards)</label>
+                        <div class="toggle-grid" id="admin-toggle-row"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -345,10 +490,14 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
+    <script src="ui.js"></script>
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="widgets.js"></script>
 </body>
 
 </html>

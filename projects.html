@@ -6,13 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects | DONI DEV</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
 </head>
 
 <body>
     <header>
         <a href="index.html" class="logo">
             <span>DONI</span>
-            <span class="logo-badge">v2.0</span>
+            <span class="logo-badge">v3.2</span>
         </a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
@@ -195,10 +200,13 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
+    <script src="ui.js"></script>
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
 </body>
 
-</html>
+</html>

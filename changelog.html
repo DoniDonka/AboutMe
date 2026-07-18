@@ -6,11 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Changelog | DONI DEV</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
 </head>
 
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v2.0</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.2</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -35,7 +40,54 @@
         <div class="bento-card span-3">
             <div class="changelog-list">
                 <div class="changelog-version">
-                    <div class="changelog-badge current">v2.0.0</div>
+                    <div class="changelog-badge current">v3.2.1</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> 20+ new command-palette commands — <code>matrix</code>, <code>party</code>, <code>rainbow</code>, <code>credits</code>, <code>keys</code>, <code>top</code>, <code>bottom</code>, <code>email</code>, <code>github</code>, <code>roblox</code>, <code>source</code>, <code>random</code>, <code>print</code>, <code>fullscreen</code>, <code>install</code>, <code>reset</code>, <code>reload</code>, <code>time</code>, <code>dark</code>, <code>light</code>, <code>link</code></li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v3.2.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Live widgets — Discord (Lanyard), GitHub activity + contribution grid, Now Playing (Last.fm), Steam, Roblox profile</li>
+                        <li><span class="cl-tag added">Added</span> Interactive Tech Stack grid (3D glass hover) &amp; Hardware/Sim setup card</li>
+                        <li><span class="cl-tag added">Added</span> Admin power-ups — live traffic (online-now + views), status override badge, quick-post notes → Latest Updates card, feature toggles</li>
+                        <li><span class="cl-tag added">Added</span> Enhancements — scroll reveals, 3D card tilt, cursor glow, count-ups, ripples, network toasts, greeting, active-nav</li>
+                        <li><span class="cl-tag added">Added</span> Keyboard shortcuts (<code>?</code> help, <code>/</code> palette, <code>g</code>+key nav) &amp; secret easter eggs (type <code>matrix</code>, <code>party</code>, <code>rainbow</code>, <code>credits</code>)</li>
+                        <li><span class="cl-tag changed">Changed</span> Firestore rules add a <code>presence</code> collection for the live online counter</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v3.1.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Firebase Auth (email/password) admin sign-in — replaces the client-side passcode gate</li>
+                        <li><span class="cl-tag changed">Changed</span> Hardened Firestore rules — contact messages &amp; dashboard writes are now admin-only (server-enforced)</li>
+                        <li><span class="cl-tag security">Security</span> Admin actions now require a real authenticated session, not a client-side check</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v3.0.0</div>
+                    <div class="changelog-date">Jul 18, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Full-screen site lock — passcode overlay that hides the whole site (🔒 in header / <code>lockscreen</code> command)</li>
+                        <li><span class="cl-tag added">Added</span> Light/dark theme toggle + 6 accent colors (persisted, no-flash)</li>
+                        <li><span class="cl-tag added">Added</span> Admin panel upgrade — tabs for Content, Appearance, Tags, Guestbook &amp; Contact Messages (Firestore)</li>
+                        <li><span class="cl-tag added">Added</span> Global visitor counter via Firestore on the Stats page</li>
+                        <li><span class="cl-tag added">Added</span> Toast notifications, scroll progress bar &amp; interface sound FX</li>
+                        <li><span class="cl-tag added">Added</span> PWA support — installable, offline service worker, icons &amp; manifest</li>
+                        <li><span class="cl-tag added">Added</span> Site-wide command palette with fuzzy search &amp; keyboard navigation (on every page)</li>
+                        <li><span class="cl-tag changed">Changed</span> Responsiveness pass across header, grids, modals &amp; palette</li>
+                        <li><span class="cl-tag changed">Changed</span> Logo badge bumped to v3.0</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version">
+                    <div class="changelog-badge">v2.0.0</div>
                     <div class="changelog-date">Jul 18, 2026</div>
                     <ul>
                         <li><span class="cl-tag added">Added</span> Passcode-protected admin panel (SHA-256 hashed)</li>
@@ -108,9 +160,12 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="ui.js"></script>
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="enhancements.js"></script>
 </body>
 
 </html>

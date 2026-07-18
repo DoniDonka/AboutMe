@@ -124,8 +124,12 @@ const Features = (() => {
         container.innerHTML = `
             <div class="stats-grid">
                 <div class="stat-card">
+                    <div class="stat-value global" id="global-views-value">…</div>
+                    <div class="stat-label">Global Views (Firebase)</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-value">${total}</div>
-                    <div class="stat-label">Total Page Views (Local)</div>
+                    <div class="stat-label">Your Page Views (Local)</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${sorted.length}</div>
@@ -218,6 +222,37 @@ const Features = (() => {
         return d.innerHTML;
     }
 
+    // Global visitor counter via Firestore (waits for Firebase to init in app.js)
+    function waitForDb(cb, tries = 0) {
+        const ready = (typeof firebaseReady !== 'undefined' && firebaseReady) &&
+                      (typeof db !== 'undefined' && db) && (typeof firebase !== 'undefined');
+        if (ready) { cb(db); return; }
+        if (tries > 30) return; // give up after ~6s
+        setTimeout(() => waitForDb(cb, tries + 1), 200);
+    }
+
+    function initGlobalStats() {
+        waitForDb((database) => {
+            const page = (window.location.pathname.split('/').pop() || 'index.html');
+            const pageKey = page.replace(/[.#$/\[\]]/g, '_');
+            const ref = database.collection('analytics').doc('global');
+
+            // increment global + per-page counters (best effort)
+            const payload = { totalViews: firebase.firestore.FieldValue.increment(1), updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            payload['pages'] = { [pageKey]: firebase.firestore.FieldValue.increment(1) };
+            ref.set(payload, { merge: true }).catch(err => console.warn('[GlobalStats] increment failed:', err));
+
+            // live-render on the stats page if present
+            const el = document.getElementById('global-views-value');
+            if (el) {
+                ref.onSnapshot(doc => {
+                    if (doc.exists) el.textContent = (doc.data().totalViews || 0).toLocaleString();
+                    else el.textContent = '0';
+                }, () => { el.textContent = '—'; });
+            }
+        });
+    }
+
     function initTypingEffect() {
         const el = document.getElementById('typing-hero');
         if (!el) return;
@@ -247,7 +282,8 @@ const Features = (() => {
         renderStatsPage();
         initGuestbook();
         initTypingEffect();
+        initGlobalStats();
     }
 
-    return { init, trackPageView, renderStatsPage, getVisitorId };
+    return { init, trackPageView, renderStatsPage, getVisitorId, initGlobalStats };
 })();
