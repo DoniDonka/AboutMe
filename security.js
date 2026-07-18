@@ -240,7 +240,7 @@ const Security = (() => {
         lock() {
             localStorage.setItem(SITE_LOCK_KEY, '1');
             this.show();
-            if (window.UI) { UI.Sound.play('lock'); UI.toast('🔒 Site locked', 'info'); }
+            if (typeof UI !== 'undefined') { UI.Sound.play('lock'); UI.toast('🔒 Site locked', 'info'); }
         },
 
         async attemptUnlock() {
@@ -252,11 +252,11 @@ const Security = (() => {
                 localStorage.removeItem(SITE_LOCK_KEY);
                 this.hide();
                 if (errorEl) errorEl.textContent = '';
-                if (window.UI) { UI.Sound.play('success'); UI.toast('🔓 Unlocked', 'success'); }
+                if (typeof UI !== 'undefined') { UI.Sound.play('success'); UI.toast('🔓 Unlocked', 'success'); }
             } else {
                 if (errorEl) errorEl.textContent = 'Incorrect passcode.';
                 if (input) { input.value = ''; input.focus(); }
-                if (window.UI) UI.Sound.play('error');
+                if (typeof UI !== 'undefined') UI.Sound.play('error');
             }
         },
 

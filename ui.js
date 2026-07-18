@@ -229,7 +229,7 @@ const UI = (() => {
         lockBtn.setAttribute('aria-label', 'Lock site');
         lockBtn.textContent = '🔒';
         lockBtn.addEventListener('click', () => {
-            if (window.Security && Security.SiteLock) Security.SiteLock.lock();
+            if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.lock();
         });
 
         // PWA install
