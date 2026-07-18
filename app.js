@@ -284,7 +284,10 @@ const Core = {
             'install': 'Install this site as an app (PWA).',
             'reset': 'Reset local preferences (theme, accent, etc.).',
             'reload': 'Reload the current page.',
-            'time': 'Show the current local time.'
+            'time': 'Show the current local time.',
+            'dark': 'Switch to dark theme.',
+            'light': 'Switch to light theme.',
+            'link': 'Copy a link to the current page.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -484,6 +487,22 @@ const Core = {
             }
             else if (trigger === 'time') {
                 Core.SystemLogs.write(`Local time: ${new Date().toLocaleString()}`);
+            }
+            else if (trigger === 'dark' || trigger === 'light') {
+                if (typeof UI !== 'undefined') {
+                    UI.Theme.apply(trigger);
+                    UI.Theme.updateToggleIcon();
+                    Core.SystemLogs.write(`Theme set to ${trigger}.`);
+                }
+            }
+            else if (trigger === 'link') {
+                const url = window.location.href;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url)
+                        .then(() => { if (typeof UI !== 'undefined') UI.toast('🔗 Link copied', 'success'); })
+                        .catch(() => {});
+                }
+                Core.SystemLogs.write(`Link copied: ${url}`);
             }
             else if (trigger.startsWith('search')) {
                 const q = clean.slice(6).trim();
