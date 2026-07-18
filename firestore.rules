@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// ============================================================
+// DONI | DEV - Firestore Security Rules (v3.0)
+// ------------------------------------------------------------
+// This is a static site with NO server-side auth, so these rules
+// are the ONLY real protection. Paste them in the Firebase console:
+//   Firestore Database -> Rules -> (paste) -> Publish
+//
+// Design goals:
+//  - Contact form can CREATE messages, but nobody can READ them
+//    publicly (protects submitters). Read them in the Firebase
+//    console, or enable Firebase Auth + the commented rule below.
+//  - Guestbook + global analytics are public (that's the point).
+//  - Dashboard settings are publicly readable (the site renders
+//    them) and — because there is no auth — publicly writable.
+//    The admin passcode is a client-side deterrent only.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Dashboard settings rendered by the site + edited from the admin panel.
+    match /dashboard/{doc} {
+      allow read: if true;
+      allow write: if true; // no auth available; passcode is client-side only
+    }
+
+    // System deployment logs written by the dashboard.
+    match /logs/{doc} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if false;
+    }
+
+    // Contact form submissions: anyone may send, nobody may read/edit publicly.
+    match /messages/{doc} {
+      allow create: if true;
+      allow read, update, delete: if false;
+      // To power the admin "Messages" tab without a backend you could set
+      //   allow read, delete: if true;
+      // but that exposes every submitted message publicly. Prefer Firebase
+      // Auth and: allow read, delete: if request.auth != null;
+    }
+
+    // Public guestbook.
+    match /guestbook/{doc} {
+      allow create: if true;
+      allow read: if true;
+      allow update, delete: if false;
+    }
+
+    // Global visitor analytics counter (single doc, increment-only in practice).
+    match /analytics/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Default deny for anything else.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -166,6 +166,107 @@ const Security = (() => {
         }
     };
 
+    // ============================================================
+    // FULL-SCREEN SITE LOCK (hides the entire site behind a passcode)
+    // Shares the admin passcode (default: doni2024). Persists across
+    // pages via localStorage so the whole site stays locked until unlocked.
+    // ============================================================
+    const SITE_LOCK_KEY = 'doni_site_locked';
+    const SITE_HASH = ADMIN_HASH; // same passcode as admin gate
+
+    const SiteLock = {
+        clockTimer: null,
+
+        isLocked() {
+            return localStorage.getItem(SITE_LOCK_KEY) === '1';
+        },
+
+        buildOverlay() {
+            if (document.getElementById('site-lock')) return document.getElementById('site-lock');
+            const el = document.createElement('div');
+            el.id = 'site-lock';
+            el.innerHTML = `
+                <div class="site-lock-logo">DONI</div>
+                <div class="site-lock-icon">🔒</div>
+                <div class="site-lock-clock" id="site-lock-clock">--:--</div>
+                <div class="site-lock-date" id="site-lock-date"></div>
+                <div class="site-lock-row">
+                    <input type="password" id="site-lock-input" class="custom-input" placeholder="Enter passcode" autocomplete="off" inputmode="numeric">
+                    <button id="site-lock-btn" class="custom-btn green">Unlock</button>
+                </div>
+                <div class="site-lock-error" id="site-lock-error"></div>
+                <div class="site-lock-hint">This site is locked. Enter the passcode to continue.</div>
+            `;
+            document.body.appendChild(el);
+
+            const input = el.querySelector('#site-lock-input');
+            const btn = el.querySelector('#site-lock-btn');
+            btn.addEventListener('click', () => this.attemptUnlock());
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.attemptUnlock(); });
+            return el;
+        },
+
+        startClock() {
+            const clock = document.getElementById('site-lock-clock');
+            const date = document.getElementById('site-lock-date');
+            const tick = () => {
+                const now = new Date();
+                if (clock) clock.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                if (date) date.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            };
+            tick();
+            clearInterval(this.clockTimer);
+            this.clockTimer = setInterval(tick, 1000);
+        },
+
+        show() {
+            const el = this.buildOverlay();
+            el.classList.add('open');
+            document.documentElement.classList.add('pre-locked');
+            document.body.style.overflow = 'hidden';
+            this.startClock();
+            const input = document.getElementById('site-lock-input');
+            if (input) { input.value = ''; setTimeout(() => input.focus(), 120); }
+        },
+
+        hide() {
+            const el = document.getElementById('site-lock');
+            if (el) el.classList.remove('open');
+            document.documentElement.classList.remove('pre-locked');
+            document.body.style.overflow = '';
+            clearInterval(this.clockTimer);
+        },
+
+        lock() {
+            localStorage.setItem(SITE_LOCK_KEY, '1');
+            this.show();
+            if (window.UI) { UI.Sound.play('lock'); UI.toast('🔒 Site locked', 'info'); }
+        },
+
+        async attemptUnlock() {
+            const input = document.getElementById('site-lock-input');
+            const errorEl = document.getElementById('site-lock-error');
+            const pass = input ? input.value : '';
+            const hash = await sha256(pass.trim());
+            if (hash === SITE_HASH) {
+                localStorage.removeItem(SITE_LOCK_KEY);
+                this.hide();
+                if (errorEl) errorEl.textContent = '';
+                if (window.UI) { UI.Sound.play('success'); UI.toast('🔓 Unlocked', 'success'); }
+            } else {
+                if (errorEl) errorEl.textContent = 'Incorrect passcode.';
+                if (input) { input.value = ''; input.focus(); }
+                if (window.UI) UI.Sound.play('error');
+            }
+        },
+
+        init() {
+            this.buildOverlay();
+            if (this.isLocked()) this.show();
+            else document.documentElement.classList.remove('pre-locked');
+        }
+    };
+
     function initAdminGate() {
         const unlockBtn = document.getElementById('admin-unlock-btn');
         const passInput = document.getElementById('admin-passcode-input');
@@ -204,5 +305,5 @@ const Security = (() => {
         }, 1000);
     }
 
-    return { AdminGate, FormGuard, initAdminGate };
+    return { AdminGate, FormGuard, SiteLock, initAdminGate };
 })();
