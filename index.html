@@ -10,10 +10,18 @@
     <meta name="theme-color" content="#000000">
     <link rel="icon" type="image/png" href="icons/favicon-64.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);var locked=localStorage.getItem('doni_site_locked')==='1';if(locked)document.documentElement.classList.add('pre-locked');var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;var seen=sessionStorage.getItem('doni_intro_seen')==='1';if(!locked&&!reduce&&!seen)document.documentElement.classList.add('booting');}catch(e){}})();</script>
 </head>
 
 <body>
+    <div id="intro-loader" aria-hidden="true">
+        <div class="intro-inner">
+            <div class="intro-logo">DONI<span>| DEV</span></div>
+            <div class="intro-bar"><div class="intro-bar-fill"></div></div>
+            <div class="intro-status">initializing</div>
+        </div>
+    </div>
+    <script>(function(){if(!document.documentElement.classList.contains('booting'))return;var root=document.documentElement;function done(){if(!root.classList.contains('booting'))return;try{sessionStorage.setItem('doni_intro_seen','1');}catch(e){}root.classList.remove('booting');root.classList.add('intro-done');var l=document.getElementById('intro-loader');if(l){l.classList.add('intro-hide');setTimeout(function(){if(l&&l.parentNode)l.parentNode.removeChild(l);},700);}}setTimeout(done,1350);setTimeout(done,4000);})();</script>
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>

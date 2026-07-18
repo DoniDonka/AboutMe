@@ -1931,3 +1931,128 @@ html.rainbow-mode { animation: hueShift 8s linear infinite; }
     .cursor-glow, .bento-card::before { display: none; }
     html.rainbow-mode { animation: none; }
 }
+
+/* ============================================================
+   PREMIUM STARTUP INTRO (index landing) — guns.lol-style boot
+   ============================================================ */
+#intro-loader { display: none; }
+
+html.booting #intro-loader {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(1200px 600px at 50% 42%, rgba(var(--accent-rgb), 0.10), transparent 60%),
+        var(--bg-color);
+    opacity: 1;
+    transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
+    will-change: opacity, filter, transform;
+    overflow: hidden;
+}
+
+/* animated conic sheen behind the mark */
+html.booting #intro-loader::before {
+    content: "";
+    position: absolute;
+    width: 140vmax;
+    height: 140vmax;
+    background: conic-gradient(from 0deg,
+        transparent 0deg, rgba(var(--accent-rgb), 0.06) 40deg,
+        transparent 120deg, transparent 240deg,
+        rgba(var(--accent-rgb), 0.05) 300deg, transparent 360deg);
+    animation: introSpin 6s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+#intro-loader.intro-hide {
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(1.06);
+    pointer-events: none;
+}
+
+.intro-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    animation: introRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.intro-logo {
+    font-size: clamp(2.6rem, 8vw, 4.4rem);
+    font-weight: 800;
+    letter-spacing: 6px;
+    line-height: 1;
+    color: #fff;
+    position: relative;
+    background: linear-gradient(100deg, #fff 20%, var(--accent) 50%, #fff 80%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: introSheen 2.2s ease-in-out infinite;
+    text-shadow: 0 0 40px rgba(var(--accent-rgb), 0.25);
+}
+
+.intro-logo span {
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 500;
+    margin-left: 6px;
+}
+
+.intro-bar {
+    width: 220px;
+    max-width: 60vw;
+    height: 3px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.intro-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb), 0.4));
+    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.6);
+    animation: introFill 1.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.intro-status {
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    animation: introBlink 1.4s ease-in-out infinite;
+}
+
+/* content "focus-in" once the loader clears */
+html.intro-done .grid-container,
+html.intro-done > body > header {
+    animation: introFocus 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+html.intro-done .grid-container { animation-delay: 0.06s; }
+
+@keyframes introSpin { to { transform: rotate(360deg); } }
+@keyframes introRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes introSheen { 0%, 100% { background-position: 120% 0; } 50% { background-position: -20% 0; } }
+@keyframes introFill { from { width: 0; } to { width: 100%; } }
+@keyframes introBlink { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.75; } }
+@keyframes introFocus {
+    from { opacity: 0; transform: scale(1.025); filter: blur(9px); }
+    to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.booting #intro-loader { display: none; }
+    html.intro-done .grid-container,
+    html.intro-done > body > header { animation: none; }
+}
