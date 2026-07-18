@@ -266,7 +266,25 @@ const Core = {
             'theme': 'Toggle light / dark theme.',
             'accent': 'Cycle the accent color.',
             'sound': 'Toggle interface sound FX.',
-            'search': 'Search pages & commands (type: search <query>).'
+            'search': 'Search pages & commands (type: search <query>).',
+            'matrix': 'Enter the Matrix (rain effect).',
+            'party': 'Throw confetti everywhere.',
+            'rainbow': 'Toggle rainbow mode.',
+            'credits': 'Roll the site credits.',
+            'keys': 'Show the keyboard shortcuts overlay.',
+            'top': 'Scroll to the top of the page.',
+            'bottom': 'Scroll to the bottom of the page.',
+            'email': 'Copy contact email to clipboard.',
+            'github': 'Open GitHub profile in a new tab.',
+            'roblox': 'Open Roblox profile in a new tab.',
+            'source': 'Open this site\u2019s source repo.',
+            'random': 'Jump to a random page.',
+            'print': 'Print / save the current page as PDF.',
+            'fullscreen': 'Toggle browser fullscreen.',
+            'install': 'Install this site as an app (PWA).',
+            'reset': 'Reset local preferences (theme, accent, etc.).',
+            'reload': 'Reload the current page.',
+            'time': 'Show the current local time.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -387,6 +405,85 @@ const Core = {
                     const on = UI.Sound.toggle();
                     Core.SystemLogs.write(`Sound FX ${on ? 'enabled' : 'disabled'}.`);
                 }
+            }
+            else if (trigger === 'matrix' || trigger === 'party' || trigger === 'rainbow' || trigger === 'credits' || trigger === 'keys') {
+                if (typeof Enhancements !== 'undefined') {
+                    if (trigger === 'matrix') { Enhancements.matrixRain(); Core.SystemLogs.write('Entering the Matrix...'); }
+                    else if (trigger === 'party') { Enhancements.confetti(180); Core.SystemLogs.write('🎉 Party mode!'); }
+                    else if (trigger === 'rainbow') { Enhancements.rainbow(); Core.SystemLogs.write('🌈 Rainbow mode toggled.'); }
+                    else if (trigger === 'credits') { Enhancements.credits(); Core.SystemLogs.write('Rolling credits...'); }
+                    else if (trigger === 'keys') { Enhancements.toggleHelp(); Core.SystemLogs.write('Keyboard shortcuts.'); }
+                } else {
+                    Core.SystemLogs.write('Enhancements not loaded on this page.');
+                }
+            }
+            else if (trigger === 'top') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                Core.SystemLogs.write('Scrolled to top.');
+            }
+            else if (trigger === 'bottom') {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                Core.SystemLogs.write('Scrolled to bottom.');
+            }
+            else if (trigger === 'email') {
+                const email = 'donidonka511@gmail.com';
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(email)
+                        .then(() => { if (typeof UI !== 'undefined') UI.toast('📋 Email copied', 'success'); })
+                        .catch(() => {});
+                }
+                Core.SystemLogs.write(`Email copied: ${email}`);
+            }
+            else if (trigger === 'github') {
+                window.open('https://github.com/DoniDonka', '_blank', 'noopener');
+                Core.SystemLogs.write('Opening GitHub profile...');
+            }
+            else if (trigger === 'roblox') {
+                window.open('https://www.roblox.com/users/213240910/profile', '_blank', 'noopener');
+                Core.SystemLogs.write('Opening Roblox profile...');
+            }
+            else if (trigger === 'source') {
+                window.open('https://github.com/DoniDonka/AboutMe', '_blank', 'noopener');
+                Core.SystemLogs.write('Opening source repository...');
+            }
+            else if (trigger === 'random') {
+                const pages = ['index.html', 'projects.html', 'about.html', 'contact.html', 'links.html', 'blog.html', 'uses.html', 'resume.html', 'guestbook.html', 'stats.html', 'changelog.html'];
+                const here = location.pathname.split('/').pop() || 'index.html';
+                const pool = pages.filter(p => p !== here);
+                window.location.href = pool[Math.floor(Math.random() * pool.length)];
+            }
+            else if (trigger === 'print') {
+                Core.SystemLogs.write('Opening print dialog...');
+                window.print();
+            }
+            else if (trigger === 'fullscreen') {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen?.();
+                    Core.SystemLogs.write('Entering fullscreen.');
+                } else {
+                    document.exitFullscreen?.();
+                    Core.SystemLogs.write('Exiting fullscreen.');
+                }
+            }
+            else if (trigger === 'install') {
+                if (typeof UI !== 'undefined' && UI.promptInstall) {
+                    UI.promptInstall();
+                    Core.SystemLogs.write('Requesting app install...');
+                } else {
+                    Core.SystemLogs.write('Install prompt not available (already installed or unsupported).');
+                }
+            }
+            else if (trigger === 'reset') {
+                ['doni_theme', 'doni_accent'].forEach(k => localStorage.removeItem(k));
+                if (typeof UI !== 'undefined') UI.toast('Preferences reset', 'info');
+                Core.SystemLogs.write('Local preferences cleared. Reloading...');
+                setTimeout(() => window.location.reload(), 600);
+            }
+            else if (trigger === 'reload') {
+                window.location.reload();
+            }
+            else if (trigger === 'time') {
+                Core.SystemLogs.write(`Local time: ${new Date().toLocaleString()}`);
             }
             else if (trigger.startsWith('search')) {
                 const q = clean.slice(6).trim();

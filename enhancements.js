@@ -374,7 +374,10 @@ const Enhancements = (() => {
         footerSecret();
     }
 
-    return { init, confetti, matrixRain };
+    return {
+        init, confetti, matrixRain, credits, toggleHelp,
+        rainbow: () => document.documentElement.classList.toggle('rainbow-mode')
+    };
 })();
 
 if (document.readyState === 'loading') {
