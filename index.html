@@ -19,9 +19,11 @@
             <div class="intro-logo">DONI<span>| DEV</span></div>
             <div class="intro-bar"><div class="intro-bar-fill"></div></div>
             <div class="intro-status">initializing</div>
+            <div class="intro-glitch" data-text="SYSTEM ONLINE">SYSTEM ONLINE</div>
         </div>
+        <div class="intro-particles" id="intro-particles"></div>
     </div>
-    <script>(function(){if(!document.documentElement.classList.contains('booting'))return;var root=document.documentElement;function done(){if(!root.classList.contains('booting'))return;try{sessionStorage.setItem('doni_intro_seen','1');}catch(e){}root.classList.remove('booting');root.classList.add('intro-done');var l=document.getElementById('intro-loader');if(l){l.classList.add('intro-hide');setTimeout(function(){if(l&&l.parentNode)l.parentNode.removeChild(l);},700);}}setTimeout(done,1350);setTimeout(done,4000);})();</script>
+    <script>(function(){if(!document.documentElement.classList.contains('booting'))return;var root=document.documentElement;var particles=document.getElementById('intro-particles');if(particles){for(var i=0;i<30;i++){var p=document.createElement('div');p.className='intro-particle';p.style.left=Math.random()*100+'vw';p.style.animationDelay=Math.random()*2+'s';p.style.animationDuration=(2+Math.random()*3)+'s';particles.appendChild(p);}}function done(){if(!root.classList.contains('booting'))return;try{sessionStorage.setItem('doni_intro_seen','1');}catch(e){}root.classList.remove('booting');root.classList.add('intro-done');var l=document.getElementById('intro-loader');if(l){l.classList.add('intro-hide');setTimeout(function(){if(l&&l.parentNode)l.parentNode.removeChild(l);},900);}}setTimeout(done,1600);setTimeout(done,5000);})();</script>
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
@@ -287,14 +289,42 @@
             </div>
         </div>
 
-        <!-- Card: Hardware / Sim Setup -->
-        <div class="bento-card widget-card" data-widget="hardware">
-            <div class="widget-head"><h2>Setup</h2><span class="widget-tag">Rig &amp; Sim</span></div>
-            <div class="hw-list">
-                <div class="hw-item"><span class="hw-ico">💻</span><div><div class="hw-name">Acer Nitro 5</div><div class="hw-detail">Ryzen 5 · RTX · 16GB</div></div></div>
-                <div class="hw-item"><span class="hw-ico">📱</span><div><div class="hw-name">Galaxy S24 FE</div><div class="hw-detail">Daily driver</div></div></div>
-                <div class="hw-item"><span class="hw-ico">🎮</span><div><div class="hw-name">Logitech G29</div><div class="hw-detail">Wheel + pedals</div></div></div>
-                <div class="hw-item"><span class="hw-ico">⌨️</span><div><div class="hw-name">Mech Keyboard</div><div class="hw-detail">Coding &amp; racing</div></div></div>
+        <!-- Card: System Specs (Premium) -->
+        <div class="bento-card span-2 widget-card" data-widget="hardware">
+            <div class="widget-head"><h2>Battle Station</h2><span class="widget-tag">Rig &amp; Peripherals</span></div>
+            <div class="specs-grid">
+                <div class="spec-card">
+                    <div class="spec-icon">💻</div>
+                    <div class="spec-info">
+                        <div class="spec-title">Custom Built</div>
+                        <div class="spec-detail">Intel i9-285K Pro · 64GB DDR5 · RTX 5080</div>
+                        <div class="spec-meta">Node, VS Code, Roblox Studio — zero sweat</div>
+                    </div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-icon">📱</div>
+                    <div class="spec-info">
+                        <div class="spec-title">Samsung Galaxy S26 Ultra</div>
+                        <div class="spec-detail">Samsung Galaxy Z-Fold 7</div>
+                        <div class="spec-meta">Mobile testing, Discord, GitHub on the go</div>
+                    </div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-icon">🎧</div>
+                    <div class="spec-info">
+                        <div class="spec-title">Audio Setup</div>
+                        <div class="spec-detail">Logitech Astro A50 X LIGHTSPEED</div>
+                        <div class="spec-meta">Crystal clear for coding sessions &amp; calls</div>
+                    </div>
+                </div>
+                <div class="spec-card">
+                    <div class="spec-icon">⌨️</div>
+                    <div class="spec-info">
+                        <div class="spec-title">Peripherals</div>
+                        <div class="spec-detail">Wooting Two HE PRO X2 SUPERSTRIKE LIGHTSPEED</div>
+                        <div class="spec-meta">Gaming &amp; long coding sessions</div>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -355,6 +355,121 @@ const Enhancements = (() => {
         });
     }
 
+    // ---------- 20. Ambient background mesh ----------
+    function ambientMesh() {
+        if (reduceMotion || isTouch) return;
+        const canvas = document.createElement('canvas');
+        canvas.id = 'ambient-mesh';
+        canvas.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0.04;';
+        document.body.insertBefore(canvas, document.body.firstChild);
+        const ctx = canvas.getContext('2d');
+        let w, h, pts = [];
+        const resize = () => {
+            w = canvas.width = innerWidth;
+            h = canvas.height = innerHeight;
+            pts = Array.from({length: 25}, () => ({
+                x: Math.random() * w, y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3
+            }));
+        };
+        resize();
+        window.addEventListener('resize', resize);
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#22c55e';
+        function draw() {
+            ctx.clearRect(0, 0, w, h);
+            pts.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > w) p.vx *= -1;
+                if (p.y < 0 || p.y > h) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = accent;
+                ctx.fill();
+                for (let j = i + 1; j < pts.length; j++) {
+                    const dx = pts[j].x - p.x, dy = pts[j].y - p.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 180) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(pts[j].x, pts[j].y);
+                        ctx.strokeStyle = accent;
+                        ctx.globalAlpha = (1 - dist / 180) * 0.15;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+            });
+            raf(draw);
+        }
+        raf(draw);
+    }
+
+    // ---------- 21. Magnetic buttons ----------
+    function magneticButtons() {
+        if (reduceMotion || isTouch) return;
+        document.querySelectorAll('.custom-btn, .snippet-btn, .icon-btn').forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const r = btn.getBoundingClientRect();
+                const x = e.clientX - r.left - r.width / 2;
+                const y = e.clientY - r.top - r.height / 2;
+                btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = '';
+            });
+        });
+    }
+
+    // ---------- 22. Text scramble effect on hover ----------
+    function textScramble() {
+        const chars = '!<>-_\/[]{}—=+*^?#________';
+        document.querySelectorAll('.logo span:first-child, .page-hero h1').forEach(el => {
+            const original = el.textContent;
+            let frame = 0, queue = [];
+            el.addEventListener('mouseenter', () => {
+                queue = [];
+                for (let i = 0; i < original.length; i++) {
+                    queue.push({ from: chars[Math.floor(Math.random() * chars.length)], to: original[i], start: i * 30, end: i * 30 + 60 });
+                }
+                frame = 0;
+                const update = () => {
+                    let output = '';
+                    for (let i = 0; i < queue.length; i++) {
+                        const { from, to, start, end } = queue[i];
+                        let char = from;
+                        if (frame >= end) char = to;
+                        else if (frame > start) {
+                            if (Math.random() < 0.3) char = chars[Math.floor(Math.random() * chars.length)];
+                            else char = to;
+                        }
+                        output += char;
+                    }
+                    el.textContent = output;
+                    if (frame < queue[queue.length - 1].end) { frame++; raf(update); }
+                    else el.textContent = original;
+                };
+                update();
+            });
+        });
+    }
+
+    // ---------- 23. Spec card spotlight hover ----------
+    function specSpotlight() {
+        if (reduceMotion || isTouch) return;
+        document.querySelectorAll('.spec-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const r = card.getBoundingClientRect();
+                const x = ((e.clientX - r.left) / r.width) * 100;
+                const y = ((e.clientY - r.top) / r.height) * 100;
+                card.style.background = `radial-gradient(300px circle at ${x}% ${y}%, rgba(var(--accent-rgb), 0.08), rgba(255,255,255,0.02))`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.background = 'rgba(255,255,255,0.02)';
+            });
+        });
+    }
+
     function init() {
         scrollReveal();
         cardTilt();
@@ -372,6 +487,10 @@ const Enhancements = (() => {
         keywordEggs();
         shortcuts();
         footerSecret();
+        ambientMesh();
+        magneticButtons();
+        textScramble();
+        specSpotlight();
     }
 
     return {
