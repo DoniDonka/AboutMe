@@ -89,7 +89,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="ui.js"></script>
     <script src="security.js"></script>
     <script src="features.js"></script>
@@ -99,10 +98,7 @@
     <script src="soundscape.js"></script>
     <script src="badges.js"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
             authDomain: "aboutme-8a339.firebaseapp.com",
@@ -113,9 +109,9 @@
             measurementId: "G-KHCMH8W9WB"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const messagesRef = collection(db, "messages");
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const messagesRef = db.collection("messages");
 
         const messagesEl = document.getElementById('chatMessages');
         const inputEl = document.getElementById('chatInput');
@@ -131,9 +127,10 @@
         themeEl.value = myTheme;
         let lastActivity = Date.now();
         let isTyping = false;
+        let chatMsgCount = parseInt(localStorage.getItem('doni_chat_count') || '0');
 
         const themeColors = {
-            green: { bg: 'rgba(0,255,136,0.1)', border: 'var(--accent-green)', text: '#00ff88' },
+            green: { bg: 'rgba(0,255,136,0.1)', border: '#00ff88', text: '#00ff88' },
             purple: { bg: 'rgba(155,89,182,0.1)', border: '#9b59b6', text: '#9b59b6' },
             orange: { bg: 'rgba(230,126,34,0.1)', border: '#e67e22', text: '#e67e22' },
             pink: { bg: 'rgba(255,105,180,0.1)', border: '#ff69b4', text: '#ff69b4' }
@@ -150,13 +147,15 @@
 
         function playTone(freq, duration, vol, type) {
             if (!window.DONI_SFX) return;
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator(), gain = ctx.createGain();
-            osc.type = type; osc.frequency.value = freq;
-            gain.gain.setValueAtTime(vol, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + duration);
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator(), gain = ctx.createGain();
+                osc.type = type; osc.frequency.value = freq;
+                gain.gain.setValueAtTime(vol, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + duration);
+            } catch(e) {}
         }
 
         function checkSoundTriggers(text) {
@@ -169,10 +168,7 @@
         // Typing indicator
         let typingTimeout;
         inputEl.addEventListener('input', () => {
-            if (!isTyping) {
-                isTyping = true;
-                // Broadcast typing (simplified — would need real-time DB)
-            }
+            if (!isTyping) { isTyping = true; }
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => { isTyping = false; }, 2000);
         });
@@ -181,59 +177,71 @@
         themeEl.addEventListener('change', () => {
             myTheme = themeEl.value;
             localStorage.setItem('doni_chat_theme', myTheme);
+            if (window.unlockBadge) window.unlockBadge('stylist');
         });
 
-        const q = query(messagesRef, orderBy("timestamp", "desc"), limit(50));
-
-        // Track AFK status
+        // AFK tracking
         setInterval(() => {
             const idle = Date.now() - lastActivity;
-            if (idle > 120000 && document.visibilityState === 'visible') {
-                // Mark as away in UI
-            }
         }, 30000);
-
         document.addEventListener('mousemove', () => { lastActivity = Date.now(); });
         document.addEventListener('keydown', () => { lastActivity = Date.now(); });
 
-        onSnapshot(q, (snapshot) => {
+        // Load messages
+        messagesRef.orderBy("timestamp", "desc").limit(50).onSnapshot((snapshot) => {
             statusEl.textContent = '● Live'; statusEl.style.color = '#00ff88';
             messagesEl.innerHTML = '';
-            snapshot.docs.reverse().forEach(doc => {
+            const docs = snapshot.docs.reverse();
+            if (docs.length === 0) {
+                messagesEl.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding-top:160px;">No messages yet. Be the first!</div>';
+            }
+            docs.forEach(doc => {
                 const msg = doc.data();
                 const div = document.createElement('div');
                 const theme = msg.theme || 'green';
                 const colors = themeColors[theme] || themeColors.green;
-                const isAFK = msg.afk ? ' 💤' : '';
-                div.style.cssText = 'padding: 10px 14px; background: ' + colors.bg + '; border-radius: 8px; border: 1px solid ' + colors.border + '; position: relative;';
-                const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                const time = msg.timestamp ? msg.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
 
-                const reactions = msg.reactions || {};
                 let reactionHtml = '';
-                for (const [emoji, count] of Object.entries(reactions)) {
-                    reactionHtml += '<span style="font-size:0.75rem;margin-right:6px;cursor:pointer;" onclick="addReaction('' + doc.id + '', '' + emoji + '')">' + emoji + ' ' + count + '</span>';
+                if (msg.reactions) {
+                    for (const [emoji, count] of Object.entries(msg.reactions)) {
+                        reactionHtml += '<span style="font-size:0.75rem;margin-right:6px;cursor:pointer;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;" onclick="addReaction('' + doc.id + '', '' + emoji + '')">' + emoji + ' ' + count + '</span>';
+                    }
                 }
 
-                div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;color:' + colors.text + ';">' + escapeHtml(msg.name || 'Anonymous') + isAFK + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;margin-bottom:6px;">' + escapeHtml(msg.text) + '</div><div style="display:flex;gap:4px;opacity:0;transition:opacity 0.2s;" class="reaction-bar"><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '👍' + "'" + ')">👍</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '🔥' + "'" + ')">🔥</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '💀' + "'" + ')">💀</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '❤️' + "'" + ')">❤️</span></div><div style="margin-top:4px;">' + reactionHtml + '</div>';
+                div.style.cssText = 'padding: 10px 14px; background: ' + colors.bg + '; border-radius: 8px; border: 1px solid ' + colors.border + '; position: relative;';
+                div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;color:' + colors.text + ';">' + escapeHtml(msg.name || 'Anonymous') + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;margin-bottom:6px;">' + escapeHtml(msg.text) + '</div><div style="display:flex;gap:4px;opacity:0;transition:opacity 0.2s;" class="reaction-bar"><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="addReaction('' + doc.id + '', ' + "'" + '👍' + "'" + ')">👍</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="addReaction('' + doc.id + '', ' + "'" + '🔥' + "'" + ')">🔥</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="addReaction('' + doc.id + '', ' + "'" + '💀' + "'" + ')">💀</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="addReaction('' + doc.id + '', ' + "'" + '❤️' + "'" + ')">❤️</span></div><div style="margin-top:4px;">' + reactionHtml + '</div>';
 
                 div.addEventListener('mouseenter', () => {
-                    div.querySelector('.reaction-bar').style.opacity = '1';
+                    const bar = div.querySelector('.reaction-bar');
+                    if (bar) bar.style.opacity = '1';
                 });
                 div.addEventListener('mouseleave', () => {
-                    div.querySelector('.reaction-bar').style.opacity = '0';
+                    const bar = div.querySelector('.reaction-bar');
+                    if (bar) bar.style.opacity = '0';
                 });
 
                 messagesEl.appendChild(div);
             });
             messagesEl.scrollTop = messagesEl.scrollHeight;
-        }, () => { statusEl.textContent = '● Offline'; statusEl.style.color = '#ff5555'; });
+        }, (err) => {
+            console.error('Chat error:', err);
+            statusEl.textContent = '● Error: ' + err.message;
+            statusEl.style.color = '#ff5555';
+            messagesEl.innerHTML = '<div style="text-align:center;color:#ff5555;padding-top:160px;">Failed to load messages.<br>Check Firestore rules.</div>';
+        });
 
         window.addReaction = async function(msgId, emoji) {
             try {
-                await updateDoc(doc(db, 'messages', msgId), {
-                    reactions: { [emoji]: (1) }  // Simplified — would need to read first
-                });
-            } catch (e) { console.error(e); }
+                const docRef = messagesRef.doc(msgId);
+                const doc = await docRef.get();
+                const data = doc.data() || {};
+                const reactions = data.reactions || {};
+                reactions[emoji] = (reactions[emoji] || 0) + 1;
+                await docRef.update({ reactions: reactions });
+                localStorage.setItem('doni_chat_reaction', 'true');
+                if (window.unlockBadge) window.unlockBadge('socialite');
+            } catch (e) { console.error('Reaction error:', e); }
         };
 
         function escapeHtml(text) {
@@ -249,34 +257,33 @@
             inputEl.value = '';
             lastActivity = Date.now();
 
-            // Check commands
             if (text === '/roll') {
                 const roll = Math.floor(Math.random() * 100) + 1;
-                await addDoc(messagesRef, {
+                await messagesRef.add({
                     name: '🎲 System',
                     text: name + ' rolled a ' + roll,
                     theme: 'purple',
-                    timestamp: serverTimestamp(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     reactions: {}
                 });
                 return;
             }
             if (text === '/time') {
-                await addDoc(messagesRef, {
+                await messagesRef.add({
                     name: '🕐 System',
                     text: 'Server time: ' + new Date().toLocaleString(),
                     theme: 'orange',
-                    timestamp: serverTimestamp(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     reactions: {}
                 });
                 return;
             }
             if (text === '/who') {
-                await addDoc(messagesRef, {
+                await messagesRef.add({
                     name: '👥 System',
                     text: 'Check the visitor counter on the dashboard!',
                     theme: 'green',
-                    timestamp: serverTimestamp(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     reactions: {}
                 });
                 return;
@@ -284,24 +291,28 @@
 
             checkSoundTriggers(text);
 
+            chatMsgCount++;
+            localStorage.setItem('doni_chat_count', chatMsgCount);
+            if (chatMsgCount >= 10 && window.unlockBadge) window.unlockBadge('chatter');
+
             try {
-                await addDoc(messagesRef, {
+                await messagesRef.add({
                     name: name.substring(0, 20),
                     text: text.substring(0, 200),
                     theme: myTheme,
-                    timestamp: serverTimestamp(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     reactions: {},
                     sessionId: mySessionId
                 });
             } catch (e) {
-                alert('Failed to send. Check Firebase config.');
+                console.error('Send error:', e);
+                alert('Failed to send: ' + e.message);
             }
         }
 
         sendBtn.addEventListener('click', sendMessage);
         inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        // Update visitor count
         async function updateVisitorCount() {
             try {
                 const res = await fetch('https://aboutme.donidonka511.workers.dev/visitor-count');
