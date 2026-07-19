@@ -134,6 +134,27 @@ export default {
             }
         }
 
+
+        // Roblox proxy
+        if (path === '/roblox' && request.method === 'GET') {
+            try {
+                const res = await fetch('https://users.roblox.com/v1/users/213240910');
+                const data = await res.json();
+                return jsonResponse({
+                    name: data.name,
+                    displayName: data.displayName,
+                    description: data.description,
+                    created: data.created,
+                    isBanned: data.isBanned,
+                    externalAppDisplayName: data.externalAppDisplayName,
+                    hasVerifiedBadge: data.hasVerifiedBadge,
+                    id: data.id
+                });
+            } catch (e) {
+                return jsonResponse({ error: 'Roblox API failed', detail: e.message }, 500);
+            }
+        }
+
         return jsonResponse({ error: 'Not found' }, 404);
     }
 };
