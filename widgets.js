@@ -22,7 +22,7 @@ const WIDGET_CONFIG = {
     // Steam — needs a secret key, so use a proxy that returns the Steam
     // GetPlayerSummaries JSON. Leave steamProxy blank to show a hint.
     steamId64: '76561198372730047',
-    steamProxy: '',               // e.g. https://your-worker.workers.dev/steam
+    steamProxy: 'https://aboutme.donidonka511.workers.dev/steam', // Cloudflare Worker proxy
 
     // Music — Last.fm (free read-only key) or a Spotify proxy.
     lastfmUser: 'DoniDonka',

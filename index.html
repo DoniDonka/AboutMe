@@ -27,7 +27,7 @@
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
-            <span class="logo-badge">v3.2</span>
+            <span class="logo-badge">v3.3</span>
         </a>
         <nav class="nav-links">
             <a href="index.html" class="active">Dashboard</a>
@@ -38,6 +38,8 @@
             <a href="blog.html">Blog</a>
             <a href="uses.html">Uses</a>
             <a href="resume.html">Resume</a>
+            <a href="chat.html">Chat</a>
+            <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn" title="Toggle System Status / Settings">
@@ -328,6 +330,21 @@
             </div>
         </div>
 
+        <!-- Card: Live Visitors -->
+        <div class="bento-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2>Live Visitors</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time</span>
+            </div>
+            <div style="text-align: center; padding: 20px 0;">
+                <div id="live-visitor-count" style="font-size: 3rem; font-weight: 800; color: var(--accent-green); line-height: 1;">—</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">online now</div>
+            </div>
+            <div style="margin-top: auto; padding-top: 10px; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
+                Tracked anonymously · Zero PII
+            </div>
+        </div>
+
         <!-- Card: Latest Updates (admin quick-post) -->
         <div class="bento-card widget-card" data-widget="updates">
             <div class="widget-head"><h2>Latest Updates</h2><span class="widget-tag">Notes</span></div>
@@ -336,12 +353,18 @@
     </div>
 
     <footer>
-        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.3</span></div>
         <div class="footer-links">
-            <a href="changelog.html">Changelog</a>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="projects.html">Projects</a>
+            <a href="blog.html">Blog</a>
+            <a href="contact.html">Contact</a>
             <a href="guestbook.html">Guestbook</a>
+            <a href="chat.html">Chat</a>
+            <a href="badges.html">Badges</a>
             <a href="stats.html">Stats</a>
-            <a href="https://github.com/DoniDonka" target="_blank">GitHub</a>
+            <a href="changelog.html">Changelog</a>
         </div>
     </footer>
 
@@ -535,6 +558,9 @@
     <script src="features.js"></script>
     <script src="app.js"></script>
     <script src="enhancements.js"></script>
+    <script src="visitor-tracker.js"></script>
+    <script src="soundscape.js"></script>
+    <script src="badges.js"></script>
     <script src="widgets.js"></script>
 </body>
 

@@ -1,7 +1,7 @@
 {
     "name": "DONI | DEV",
     "short_name": "DONI",
-    "description": "DONI's developer dashboard, projects, blog, and more.",
+    "description": "DONI | DEV v3.3 — Dashboard, projects, blog, chat, badges, and more.",
     "start_url": "./index.html",
     "scope": "./",
     "display": "standalone",

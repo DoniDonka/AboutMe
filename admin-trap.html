@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | DONI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a; color: #ff3333;
+            font-family: 'Courier New', monospace;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; flex-direction: column; text-align: center;
+        }
+        .glitch {
+            font-size: 4rem; font-weight: bold;
+            text-shadow: 2px 0 #ff0000, -2px 0 #00ff00;
+            animation: glitch 0.3s infinite;
+        }
+        @keyframes glitch {
+            0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); } 60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); } 100% { transform: translate(0); }
+        }
+        .message { margin-top: 2rem; font-size: 1.2rem; opacity: 0.7; }
+        .countdown { margin-top: 1rem; font-size: 2rem; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="glitch">ACCESS DENIED</div>
+    <div class="message">This incident has been logged and reported.</div>
+    <div class="message">There is no admin panel here. You have been redirected.</div>
+    <div class="countdown" id="countdown">5</div>
+    <script>
+        fetch('https://aboutme.donidonka511.workers.dev/admin-alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                page: location.href,
+                screen: screen.width + 'x' + screen.height,
+                language: navigator.language,
+                platform: navigator.platform,
+                referrer: document.referrer
+            })
+        }).catch(() => {});
+        try { window.unlockBadge && window.unlockBadge('red-pill'); } catch(e) {}
+        let n = 5;
+        const el = document.getElementById('countdown');
+        setInterval(() => { n--; el.textContent = n; if (n <= 0) location.href = '/'; }, 1000);
+    </script>
+</body>
+</html>

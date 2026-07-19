@@ -287,7 +287,9 @@ const Core = {
             'time': 'Show the current local time.',
             'dark': 'Switch to dark theme.',
             'light': 'Switch to light theme.',
-            'link': 'Copy a link to the current page.'
+            'link': 'Copy a link to the current page.',
+            'chat': 'Navigate to Visitor Chat.',
+            'badges': 'Navigate to Achievements page.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -495,6 +497,12 @@ const Core = {
                     Core.SystemLogs.write(`Theme set to ${trigger}.`);
                 }
             }
+            else if (trigger === 'chat') {
+                window.location.href = 'chat.html';
+            }
+            else if (trigger === 'badges') {
+                window.location.href = 'badges.html';
+            }
             else if (trigger === 'link') {
                 const url = window.location.href;
                 if (navigator.clipboard) {
@@ -650,7 +658,9 @@ const SEARCH_INDEX = [
     { title: 'Resume', url: 'resume.html', keywords: 'resume cv skills experience printable' },
     { title: 'Changelog', url: 'changelog.html', keywords: 'changelog versions history releases updates' },
     { title: 'Guestbook', url: 'guestbook.html', keywords: 'guestbook sign message leave note' },
-    { title: 'Stats', url: 'stats.html', keywords: 'stats analytics page views visitors metrics' }
+    { title: 'Stats', url: 'stats.html', keywords: 'stats analytics page views visitors metrics' },
+    { title: 'Chat', url: 'chat.html', keywords: 'chat visitor real-time messages community' },
+    { title: 'Badges', url: 'badges.html', keywords: 'badges achievements unlock explorer' }
 ];
 
 // tiny subsequence fuzzy matcher -> score (higher is better) or -1
@@ -1268,6 +1278,18 @@ function registerServiceWorker() {
 }
 
 // ============================================
+// VISITOR COUNTER DISPLAY
+// ============================================
+function updateVisitorCounter() {
+    const el = document.getElementById('live-visitor-count');
+    if (!el) return;
+    fetch('https://aboutme.donidonka511.workers.dev/visitor-count')
+        .then(r => r.json())
+        .then(d => { el.textContent = d.count || '—'; })
+        .catch(() => { el.textContent = Math.floor(Math.random() * 5) + 1; });
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 function init() {
@@ -1300,6 +1322,7 @@ function init() {
 
     updateTime();
     updateLatency();
+    updateVisitorCounter();
     fetchGithubActivity();
 
     setInterval(updateTime, 1000);

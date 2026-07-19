@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Chat | DONI | DEV</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <meta name="description" content="Real-time visitor chat — no accounts needed.">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.3</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+            <a href="chat.html" class="active">Chat</a>
+            <a href="badges.html">Badges</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Community</p>
+        <h1>💬 Visitor Chat</h1>
+        <p>Real-time. No accounts. Be nice.</p>
+    </div>
+
+    <div class="grid-container">
+        <div class="bento-card span-3">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2>Live Chat</h2>
+                <div id="chatStatus" style="font-size: 0.8rem; color: var(--text-muted);">● Connecting...</div>
+            </div>
+            <div id="chatMessages" style="height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-top: 160px;">Loading messages...</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="chatName" placeholder="Name (optional)" maxlength="20" style="width: 140px; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem;">
+                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem;">
+                <button id="chatSend" class="custom-btn green" style="padding: 10px 20px;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.3</span></div>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="projects.html">Projects</a>
+            <a href="blog.html">Blog</a>
+            <a href="contact.html">Contact</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="chat.html">Chat</a>
+            <a href="badges.html">Badges</a>
+            <a href="stats.html">Stats</a>
+            <a href="changelog.html">Changelog</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="ui.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="visitor-tracker.js"></script>
+    <script src="soundscape.js"></script>
+    <script src="badges.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
+            authDomain: "aboutme-8a339.firebaseapp.com",
+            projectId: "aboutme-8a339",
+            storageBucket: "aboutme-8a339.firebasestorage.app",
+            messagingSenderId: "638307646276",
+            appId: "1:638307646276:web:fe52c653fd16fa81f37511"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const messagesRef = collection(db, "chat-messages");
+
+        const messagesEl = document.getElementById('chatMessages');
+        const inputEl = document.getElementById('chatInput');
+        const nameEl = document.getElementById('chatName');
+        const sendBtn = document.getElementById('chatSend');
+        const statusEl = document.getElementById('chatStatus');
+
+        const q = query(messagesRef, orderBy("timestamp", "desc"), limit(50));
+        onSnapshot(q, (snapshot) => {
+            statusEl.textContent = '● Live'; statusEl.style.color = '#00ff88';
+            messagesEl.innerHTML = '';
+            snapshot.docs.reverse().forEach(doc => {
+                const msg = doc.data();
+                const div = document.createElement('div');
+                div.style.cssText = 'padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border-color);';
+                const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;">' + escapeHtml(msg.name || 'Anonymous') + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;">' + escapeHtml(msg.text) + '</div>';
+                messagesEl.appendChild(div);
+            });
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }, () => { statusEl.textContent = '● Offline'; statusEl.style.color = '#ff5555'; });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function sendMessage() {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            const name = nameEl.value.trim() || 'Anonymous';
+            inputEl.value = '';
+            try {
+                await addDoc(messagesRef, {
+                    name: name.substring(0, 20),
+                    text: text.substring(0, 200),
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) { alert('Failed to send. Check Firebase config.'); }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
+</body>
+</html>

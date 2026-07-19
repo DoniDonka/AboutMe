@@ -15,7 +15,7 @@
 
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.2</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.3</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -25,6 +25,8 @@
             <a href="blog.html">Blog</a>
             <a href="uses.html">Uses</a>
             <a href="resume.html">Resume</a>
+            <a href="chat.html">Chat</a>
+            <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
@@ -40,7 +42,23 @@
         <div class="bento-card span-3">
             <div class="changelog-list">
                 <div class="changelog-version">
-                    <div class="changelog-badge current">v3.2.1</div>
+                    <div class="changelog-badge current">v3.3.0</div>
+                    <div class="changelog-date">Jul 19, 2026</div>
+                    <ul>
+                        <li><span class="cl-tag added">Added</span> Anonymous visitor tracking — Discord notifications via Cloudflare Worker (join/leave, session duration, pages viewed)</li>
+                        <li><span class="cl-tag added">Added</span> Real-time visitor chat — Firebase Firestore, no accounts needed</li>
+                        <li><span class="cl-tag added">Added</span> Achievement badge system — 10 unlockable badges with progress tracking</li>
+                        <li><span class="cl-tag added">Added</span> Ambient soundscape — procedural drone + UI sound FX (respects toggle)</li>
+                        <li><span class="cl-tag added">Added</span> Admin trap decoy page — logs access + sends Discord embed alert</li>
+                        <li><span class="cl-tag added">Added</span> Steam integration wired to Cloudflare Worker at aboutme.donidonka511.workers.dev</li>
+                        <li><span class="cl-tag added">Added</span> Live visitor counter widget on dashboard</li>
+                        <li><span class="cl-tag changed">Changed</span> Nav + footer updated on all pages — Chat &amp; Badges links</li>
+                        <li><span class="cl-tag changed">Changed</span> Version bumped to v3.3 across all pages, manifest, and service worker</li>
+                    </ul>
+                </div>
+
+                <div class="changelog-version"><div class="changelog-version">
+                    <div class="changelog-badge">v3.2.1</div>
                     <div class="changelog-date">Jul 18, 2026</div>
                     <ul>
                         <li><span class="cl-tag added">Added</span> 20+ new command-palette commands — <code>matrix</code>, <code>party</code>, <code>rainbow</code>, <code>credits</code>, <code>keys</code>, <code>top</code>, <code>bottom</code>, <code>email</code>, <code>github</code>, <code>roblox</code>, <code>source</code>, <code>random</code>, <code>print</code>, <code>fullscreen</code>, <code>install</code>, <code>reset</code>, <code>reload</code>, <code>time</code>, <code>dark</code>, <code>light</code>, <code>link</code></li>
@@ -150,7 +168,7 @@
     </div>
 
     <footer>
-        <div>&copy; 2026 DONI. All systems operational.</div>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.3</span></div>
         <div class="footer-links">
             <a href="guestbook.html">Guestbook</a>
             <a href="stats.html">Stats</a>
@@ -166,6 +184,9 @@
     <script src="features.js"></script>
     <script src="app.js"></script>
     <script src="enhancements.js"></script>
+    <script src="visitor-tracker.js"></script>
+    <script src="soundscape.js"></script>
+    <script src="badges.js"></script>
 </body>
 
 </html>
