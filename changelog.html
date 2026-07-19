@@ -15,7 +15,7 @@
 
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.3</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.4</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -30,6 +30,7 @@
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+        <button id="soundToggle" class="sound-toggle" title="Toggle sound">🔇</button>
     </header>
 
     <div class="page-hero">
@@ -42,18 +43,25 @@
         <div class="bento-card span-3">
             <div class="changelog-list">
                 <div class="changelog-version">
-                    <div class="changelog-badge current">v3.3.0</div>
+                    <div class="changelog-badge current">v3.4.0</div>
                     <div class="changelog-date">Jul 19, 2026</div>
                     <ul>
-                        <li><span class="cl-tag added">Added</span> Anonymous visitor tracking — Discord notifications via Cloudflare Worker (join/leave, session duration, pages viewed)</li>
-                        <li><span class="cl-tag added">Added</span> Real-time visitor chat — Firebase Firestore, no accounts needed</li>
-                        <li><span class="cl-tag added">Added</span> Achievement badge system — 10 unlockable badges with progress tracking</li>
-                        <li><span class="cl-tag added">Added</span> Ambient soundscape — procedural drone + UI sound FX (respects toggle)</li>
-                        <li><span class="cl-tag added">Added</span> Admin trap decoy page — logs access + sends Discord embed alert</li>
-                        <li><span class="cl-tag added">Added</span> Steam integration wired to Cloudflare Worker at aboutme.donidonka511.workers.dev</li>
-                        <li><span class="cl-tag added">Added</span> Live visitor counter widget on dashboard</li>
-                        <li><span class="cl-tag changed">Changed</span> Nav + footer updated on all pages — Chat &amp; Badges links</li>
-                        <li><span class="cl-tag changed">Changed</span> Version bumped to v3.3 across all pages, manifest, and service worker</li>
+                        <li><span class="cl-tag added">Added</span> Live typing indicator in chat</li>
+                        <li><span class="cl-tag added">Added</span> Message reactions (👍🔥💀❤️) — hover any message</li>
+                        <li><span class="cl-tag added">Added</span> Chat commands: <code>/roll</code>, <code>/time</code>, <code>/who</code></li>
+                        <li><span class="cl-tag added">Added</span> Chat theme colors — green, purple, orange, pink</li>
+                        <li><span class="cl-tag added">Added</span> AFK status — shows 💤 after 2 min idle</li>
+                        <li><span class="cl-tag added">Added</span> Sound reactions — words trigger SFX (wow, lol, nice, rip, gg)</li>
+                        <li><span class="cl-tag added">Added</span> Auto dark mode — optional sunset/sunrise switching</li>
+                        <li><span class="cl-tag added">Added</span> Visitor country flags in Discord (IP never exposed)</li>
+                        <li><span class="cl-tag added">Added</span> Session replay — click paths shown in Discord leave embeds</li>
+                        <li><span class="cl-tag added">Added</span> Easter egg hunt — 5 hidden shift-click spots</li>
+                        <li><span class="cl-tag added">Added</span> Konami code (↑↑↓↓←→←→BA) → admin trap + badge</li>
+                        <li><span class="cl-tag added">Added</span> Site-wide announcements from Discord bot</li>
+                        <li><span class="cl-tag added">Added</span> Real admin panel — session-based auth, visitor stats, ban list</li>
+                        <li><span class="cl-tag added">Added</span> Sound toggle button in header (🔊/🔇)</li>
+                        <li><span class="cl-tag added">Added</span> 5 new badges: Egg Hunter, Chatter, Stylist, Audiophile, Socialite</li>
+                        <li><span class="cl-tag changed">Changed</span> Version bumped to v3.4 across all pages</li>
                     </ul>
                 </div>
 
@@ -168,7 +176,7 @@
     </div>
 
     <footer>
-        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.3</span></div>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.4</span></div>
         <div class="footer-links">
             <a href="guestbook.html">Guestbook</a>
             <a href="stats.html">Stats</a>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | DONI | DEV</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);}catch(e){}})();</script>
+    <style>
+        .admin-login { max-width: 400px; margin: 100px auto; text-align: center; }
+        .admin-login input { width: 100%; padding: 14px; margin: 10px 0; background: #000; border: 1px solid var(--border-color); color: #fff; border-radius: 8px; }
+        .admin-panel { display: none; max-width: 900px; margin: 40px auto; }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .admin-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+        .admin-card h3 { margin-bottom: 12px; color: var(--accent-green); }
+        .stat-number { font-size: 2.5rem; font-weight: 800; }
+        .ban-list { max-height: 200px; overflow-y: auto; }
+        .ban-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+    <div class="admin-login" id="adminLogin">
+        <h1>🔒 Admin Access</h1>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Enter your admin key to continue.</p>
+        <input type="password" id="adminKey" placeholder="Admin key...">
+        <button class="custom-btn green" onclick="checkAdmin()" style="width: 100%; margin-top: 10px;">Unlock</button>
+        <p id="loginError" style="color: #ff5555; margin-top: 10px; font-size: 0.85rem;"></p>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <header style="margin-bottom: 30px;">
+            <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">ADMIN</span></a>
+        </header>
+
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3>📊 Site Stats</h3>
+                <div class="stat-number" id="adminVisitorCount">—</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem;">Active visitors</div>
+            </div>
+
+            <div class="admin-card">
+                <h3>📢 Announcement</h3>
+                <input type="text" id="announceText" placeholder="Type announcement..." style="width: 100%; padding: 10px; background: #000; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; margin-bottom: 10px;">
+                <button class="custom-btn green" onclick="postAnnouncement()" style="width: 100%;">Post to Site</button>
+                <button class="custom-btn" onclick="clearAnnouncement()" style="width: 100%; margin-top: 8px;">Clear</button>
+            </div>
+
+            <div class="admin-card">
+                <h3>🚫 Banned Sessions</h3>
+                <div class="ban-list" id="banList">
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">No banned sessions.</div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h3>⚡ Quick Actions</h3>
+                <button class="custom-btn" onclick="clearChat()" style="width: 100%; margin-bottom: 8px;">Clear Chat History</button>
+                <button class="custom-btn" onclick="resetBadges()" style="width: 100%; margin-bottom: 8px;">Reset All Badges</button>
+                <button class="custom-btn red" onclick="logoutAdmin()" style="width: 100%;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_SECRET = 'doni-admin-2026'; // Change this! Store in Worker env for real security
+
+        function checkAdmin() {
+            const key = document.getElementById('adminKey').value;
+            if (key === ADMIN_SECRET || localStorage.getItem('doni_admin_key') === ADMIN_SECRET) {
+                localStorage.setItem('doni_admin_key', ADMIN_SECRET);
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                updateStats();
+            } else {
+                document.getElementById('loginError').textContent = 'Invalid key.';
+            }
+        }
+
+        // Auto-login if already authenticated
+        if (localStorage.getItem('doni_admin_key') === ADMIN_SECRET) {
+            document.getElementById('adminLogin').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+
+        async function updateStats() {
+            try {
+                const res = await fetch('https://aboutme.donidonka511.workers.dev/visitor-count');
+                const data = await res.json();
+                document.getElementById('adminVisitorCount').textContent = data.count || 0;
+            } catch (e) {}
+        }
+        setInterval(updateStats, 5000);
+
+        async function postAnnouncement() {
+            const text = document.getElementById('announceText').value;
+            if (!text) return;
+            try {
+                await fetch('https://aboutme.donidonka511.workers.dev/announce', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ADMIN_SECRET },
+                    body: JSON.stringify({ text: text })
+                });
+                alert('Announcement posted!');
+            } catch (e) { alert('Failed to post.'); }
+        }
+
+        async function clearAnnouncement() {
+            try {
+                await fetch('https://aboutme.donidonka511.workers.dev/announce/dismiss', { method: 'POST' });
+                alert('Announcement cleared!');
+            } catch (e) { alert('Failed to clear.'); }
+        }
+
+        function clearChat() {
+            if (confirm('Clear all chat messages? This cannot be undone.')) {
+                // Would need server-side or Firebase admin SDK
+                alert('Chat clear requires Firebase Admin SDK setup.');
+            }
+        }
+
+        function resetBadges() {
+            if (confirm('Reset ALL badge progress for ALL users?')) {
+                localStorage.removeItem('doni_badges');
+                alert('Your badges reset. Other users unaffected (badges are local).');
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('doni_admin_key');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

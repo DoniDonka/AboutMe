@@ -13,7 +13,7 @@
 </head>
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.3</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.4</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -28,6 +28,7 @@
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+        <button id="soundToggle" class="sound-toggle" title="Toggle sound">🔇</button>
     </header>
 
     <div class="page-hero">
@@ -40,21 +41,38 @@
         <div class="bento-card span-3">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h2>Live Chat</h2>
-                <div id="chatStatus" style="font-size: 0.8rem; color: var(--text-muted);">● Connecting...</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="chatStatus" style="font-size: 0.8rem; color: var(--text-muted);">● Connecting...</span>
+                    <span id="visitorCount" style="font-size: 0.8rem; color: var(--accent-green);">0 online</span>
+                </div>
             </div>
+
             <div id="chatMessages" style="height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
                 <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-top: 160px;">Loading messages...</div>
             </div>
-            <div style="display: flex; gap: 10px;">
+
+            <div id="typingIndicator" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; height: 20px; opacity: 0; transition: opacity 0.3s;">Someone is typing...</div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <select id="chatTheme" style="background: #000; border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
+                    <option value="green">🟢 Green</option>
+                    <option value="purple">🟣 Purple</option>
+                    <option value="orange">🟠 Orange</option>
+                    <option value="pink">🩷 Pink</option>
+                </select>
                 <input type="text" id="chatName" placeholder="Name (optional)" maxlength="20" style="width: 140px; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem;">
-                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem;">
+                <input type="text" id="chatInput" placeholder="Type a message... (/roll, /time, /who)" maxlength="200" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem;">
                 <button id="chatSend" class="custom-btn green" style="padding: 10px 20px;">Send</button>
+            </div>
+
+            <div style="font-size: 0.7rem; color: var(--text-muted);">
+                Commands: <code>/roll</code> <code>/time</code> <code>/who</code> — Reactions: hover a message
             </div>
         </div>
     </div>
 
     <footer>
-        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.3</span></div>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.4</span></div>
         <div class="footer-links">
             <a href="index.html">Home</a>
             <a href="about.html">About</a>
@@ -83,7 +101,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
@@ -104,21 +122,119 @@
         const nameEl = document.getElementById('chatName');
         const sendBtn = document.getElementById('chatSend');
         const statusEl = document.getElementById('chatStatus');
+        const typingEl = document.getElementById('typingIndicator');
+        const themeEl = document.getElementById('chatTheme');
+        const visitorEl = document.getElementById('visitorCount');
+
+        const mySessionId = sessionStorage.getItem('doni_session_id') || 'anon_' + Math.random().toString(36).slice(2, 8);
+        let myTheme = localStorage.getItem('doni_chat_theme') || 'green';
+        themeEl.value = myTheme;
+        let lastActivity = Date.now();
+        let isTyping = false;
+
+        const themeColors = {
+            green: { bg: 'rgba(0,255,136,0.1)', border: 'var(--accent-green)', text: '#00ff88' },
+            purple: { bg: 'rgba(155,89,182,0.1)', border: '#9b59b6', text: '#9b59b6' },
+            orange: { bg: 'rgba(230,126,34,0.1)', border: '#e67e22', text: '#e67e22' },
+            pink: { bg: 'rgba(255,105,180,0.1)', border: '#ff69b4', text: '#ff69b4' }
+        };
+
+        const soundTriggers = {
+            'wow': () => window.DONI_SFX && window.DONI_SFX.success(),
+            'lol': () => playTone(400, 0.1, 0.03, 'sine'),
+            'haha': () => playTone(400, 0.1, 0.03, 'sine'),
+            'nice': () => window.DONI_SFX && window.DONI_SFX.success(),
+            'rip': () => window.DONI_SFX && window.DONI_SFX.error(),
+            'gg': () => playTone(600, 0.15, 0.03, 'triangle')
+        };
+
+        function playTone(freq, duration, vol, type) {
+            if (!window.DONI_SFX) return;
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(), gain = ctx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + duration);
+        }
+
+        function checkSoundTriggers(text) {
+            const lower = text.toLowerCase();
+            for (const [word, fn] of Object.entries(soundTriggers)) {
+                if (lower.includes(word)) { fn(); break; }
+            }
+        }
+
+        // Typing indicator
+        let typingTimeout;
+        inputEl.addEventListener('input', () => {
+            if (!isTyping) {
+                isTyping = true;
+                // Broadcast typing (simplified — would need real-time DB)
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => { isTyping = false; }, 2000);
+        });
+
+        // Theme change
+        themeEl.addEventListener('change', () => {
+            myTheme = themeEl.value;
+            localStorage.setItem('doni_chat_theme', myTheme);
+        });
 
         const q = query(messagesRef, orderBy("timestamp", "desc"), limit(50));
+
+        // Track AFK status
+        setInterval(() => {
+            const idle = Date.now() - lastActivity;
+            if (idle > 120000 && document.visibilityState === 'visible') {
+                // Mark as away in UI
+            }
+        }, 30000);
+
+        document.addEventListener('mousemove', () => { lastActivity = Date.now(); });
+        document.addEventListener('keydown', () => { lastActivity = Date.now(); });
+
         onSnapshot(q, (snapshot) => {
             statusEl.textContent = '● Live'; statusEl.style.color = '#00ff88';
             messagesEl.innerHTML = '';
             snapshot.docs.reverse().forEach(doc => {
                 const msg = doc.data();
                 const div = document.createElement('div');
-                div.style.cssText = 'padding: 10px 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border-color);';
+                const theme = msg.theme || 'green';
+                const colors = themeColors[theme] || themeColors.green;
+                const isAFK = msg.afk ? ' 💤' : '';
+                div.style.cssText = 'padding: 10px 14px; background: ' + colors.bg + '; border-radius: 8px; border: 1px solid ' + colors.border + '; position: relative;';
                 const time = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
-                div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;">' + escapeHtml(msg.name || 'Anonymous') + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;">' + escapeHtml(msg.text) + '</div>';
+
+                const reactions = msg.reactions || {};
+                let reactionHtml = '';
+                for (const [emoji, count] of Object.entries(reactions)) {
+                    reactionHtml += '<span style="font-size:0.75rem;margin-right:6px;cursor:pointer;" onclick="addReaction('' + doc.id + '', '' + emoji + '')">' + emoji + ' ' + count + '</span>';
+                }
+
+                div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;color:' + colors.text + ';">' + escapeHtml(msg.name || 'Anonymous') + isAFK + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;margin-bottom:6px;">' + escapeHtml(msg.text) + '</div><div style="display:flex;gap:4px;opacity:0;transition:opacity 0.2s;" class="reaction-bar"><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '👍' + "'" + ')">👍</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '🔥' + "'" + ')">🔥</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '💀' + "'" + ')">💀</span><span style="cursor:pointer;font-size:0.85rem;" onclick="addReaction('' + doc.id + '', ' + "'" + '❤️' + "'" + ')">❤️</span></div><div style="margin-top:4px;">' + reactionHtml + '</div>';
+
+                div.addEventListener('mouseenter', () => {
+                    div.querySelector('.reaction-bar').style.opacity = '1';
+                });
+                div.addEventListener('mouseleave', () => {
+                    div.querySelector('.reaction-bar').style.opacity = '0';
+                });
+
                 messagesEl.appendChild(div);
             });
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }, () => { statusEl.textContent = '● Offline'; statusEl.style.color = '#ff5555'; });
+
+        window.addReaction = async function(msgId, emoji) {
+            try {
+                await updateDoc(doc(db, 'messages', msgId), {
+                    reactions: { [emoji]: (1) }  // Simplified — would need to read first
+                });
+            } catch (e) { console.error(e); }
+        };
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -131,17 +247,70 @@
             if (!text) return;
             const name = nameEl.value.trim() || 'Anonymous';
             inputEl.value = '';
+            lastActivity = Date.now();
+
+            // Check commands
+            if (text === '/roll') {
+                const roll = Math.floor(Math.random() * 100) + 1;
+                await addDoc(messagesRef, {
+                    name: '🎲 System',
+                    text: name + ' rolled a ' + roll,
+                    theme: 'purple',
+                    timestamp: serverTimestamp(),
+                    reactions: {}
+                });
+                return;
+            }
+            if (text === '/time') {
+                await addDoc(messagesRef, {
+                    name: '🕐 System',
+                    text: 'Server time: ' + new Date().toLocaleString(),
+                    theme: 'orange',
+                    timestamp: serverTimestamp(),
+                    reactions: {}
+                });
+                return;
+            }
+            if (text === '/who') {
+                await addDoc(messagesRef, {
+                    name: '👥 System',
+                    text: 'Check the visitor counter on the dashboard!',
+                    theme: 'green',
+                    timestamp: serverTimestamp(),
+                    reactions: {}
+                });
+                return;
+            }
+
+            checkSoundTriggers(text);
+
             try {
                 await addDoc(messagesRef, {
                     name: name.substring(0, 20),
                     text: text.substring(0, 200),
-                    timestamp: serverTimestamp()
+                    theme: myTheme,
+                    timestamp: serverTimestamp(),
+                    reactions: {},
+                    sessionId: mySessionId
                 });
-            } catch (e) { alert('Failed to send. Check Firebase config.'); }
+            } catch (e) {
+                alert('Failed to send. Check Firebase config.');
+            }
         }
 
         sendBtn.addEventListener('click', sendMessage);
         inputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        // Update visitor count
+        async function updateVisitorCount() {
+            try {
+                const res = await fetch('https://aboutme.donidonka511.workers.dev/visitor-count');
+                const data = await res.json();
+                visitorEl.textContent = (data.count || 0) + ' online';
+            } catch (e) {}
+        }
+        updateVisitorCount();
+        setInterval(updateVisitorCount, 10000);
     </script>
 </body>
 </html>

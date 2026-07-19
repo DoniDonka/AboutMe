@@ -289,7 +289,9 @@ const Core = {
             'light': 'Switch to light theme.',
             'link': 'Copy a link to the current page.',
             'chat': 'Navigate to Visitor Chat.',
-            'badges': 'Navigate to Achievements page.'
+            'badges': 'Navigate to Achievements page.',
+            'admin': 'Navigate to admin panel (secret).',
+            'sound': 'Toggle soundscape on/off.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -503,6 +505,15 @@ const Core = {
             else if (trigger === 'badges') {
                 window.location.href = 'badges.html';
             }
+            else if (trigger === 'admin') {
+                window.location.href = 'admin-panel.html';
+            }
+            else if (trigger === 'sound') {
+                const now = localStorage.getItem('doni_sound') === 'true';
+                localStorage.setItem('doni_sound', now ? 'false' : 'true');
+                window.dispatchEvent(new StorageEvent('storage', { key: 'doni_sound', newValue: now ? 'false' : 'true' }));
+                showNotification(now ? 'Soundscape disabled.' : 'Soundscape enabled!', 'success');
+            }
             else if (trigger === 'link') {
                 const url = window.location.href;
                 if (navigator.clipboard) {
@@ -660,7 +671,8 @@ const SEARCH_INDEX = [
     { title: 'Guestbook', url: 'guestbook.html', keywords: 'guestbook sign message leave note' },
     { title: 'Stats', url: 'stats.html', keywords: 'stats analytics page views visitors metrics' },
     { title: 'Chat', url: 'chat.html', keywords: 'chat visitor real-time messages community' },
-    { title: 'Badges', url: 'badges.html', keywords: 'badges achievements unlock explorer' }
+    { title: 'Badges', url: 'badges.html', keywords: 'badges achievements unlock explorer' },
+    { title: 'Admin', url: 'admin-panel.html', keywords: 'admin panel secret control' }
 ];
 
 // tiny subsequence fuzzy matcher -> score (higher is better) or -1
@@ -1286,7 +1298,113 @@ function updateVisitorCounter() {
     fetch('https://aboutme.donidonka511.workers.dev/visitor-count')
         .then(r => r.json())
         .then(d => { el.textContent = d.count || '—'; })
-        .catch(() => { el.textContent = Math.floor(Math.random() * 5) + 1; });
+        .catch(() => { el.textContent = '—'; });
+}
+
+// ============================================
+// ANNOUNCEMENT BANNER
+// ============================================
+function checkAnnouncement() {
+    fetch('https://aboutme.donidonka511.workers.dev/announce')
+        .then(r => r.json())
+        .then(d => {
+            if (d.announcement) {
+                showAnnouncement(d.announcement.text);
+            }
+        })
+        .catch(() => {});
+}
+
+function showAnnouncement(text) {
+    let banner = document.getElementById('announcement-banner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'announcement-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:var(--accent-green);color:#000;padding:10px 20px;text-align:center;font-weight:700;z-index:9999;transform:translateY(-100%);transition:transform 0.3s;cursor:pointer;';
+        banner.innerHTML = '<span id="announce-text"></span> <span style="margin-left:10px;font-size:0.8rem;">✕</span>';
+        banner.addEventListener('click', () => {
+            banner.style.transform = 'translateY(-100%)';
+            fetch('https://aboutme.donidonka511.workers.dev/announce/dismiss', { method: 'POST' }).catch(() => {});
+        });
+        document.body.appendChild(banner);
+    }
+    document.getElementById('announce-text').textContent = text;
+    banner.style.transform = 'translateY(0)';
+}
+
+// ============================================
+// AUTO DARK MODE
+// ============================================
+function checkAutoDarkMode() {
+    if (localStorage.getItem('doni_auto_dark') !== 'true') return;
+    const hour = new Date().getHours();
+    const isDark = hour < 6 || hour >= 20;
+    const current = document.documentElement.getAttribute('data-theme');
+    if (isDark && current !== 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('doni_theme', 'dark');
+    } else if (!isDark && current !== 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('doni_theme', 'light');
+    }
+}
+
+// ============================================
+// EASTER EGG HUNT
+// ============================================
+function initEasterEggs() {
+    const eggs = [
+        { id: 'egg-logo', selector: '.logo', hint: 'The logo hides secrets' },
+        { id: 'egg-footer', selector: '.footer-links a:last-child', hint: 'The last link knows' },
+        { id: 'egg-status', selector: '#status-btn', hint: 'Status is clickable' },
+        { id: 'egg-hero', selector: '.page-hero h1', hint: 'The title holds power' },
+        { id: 'egg-version', selector: '.version-badge', hint: 'Version numbers lie' }
+    ];
+    eggs.forEach(egg => {
+        const el = document.querySelector(egg.selector);
+        if (!el) return;
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            if (e.shiftKey) {
+                e.preventDefault();
+                window.findEasterEgg && window.findEasterEgg(egg.id);
+                showNotification('🥚 Easter egg found! (' + egg.hint + ')', 'success');
+            }
+        });
+    });
+}
+
+// ============================================
+// KONAMI CODE
+// ============================================
+function initKonami() {
+    const code = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let idx = 0;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === code[idx]) {
+            idx++;
+            if (idx === code.length) {
+                idx = 0;
+                window.unlockBadge && window.unlockBadge('konami');
+                showNotification('🎮 Konami code activated!', 'success');
+                setTimeout(() => location.href = 'admin-trap.html', 1000);
+            }
+        } else {
+            idx = 0;
+        }
+    });
+}
+
+// ============================================
+// CURSOR TRACKING (settings-based)
+// ============================================
+function initCursorTracking() {
+    if (localStorage.getItem('doni_cursor_track') !== 'true') return;
+    const indicator = document.createElement('div');
+    indicator.id = 'cursor-track-indicator';
+    indicator.style.cssText = 'position:fixed;bottom:20px;right:20px;background:rgba(0,255,136,0.2);border:1px solid var(--accent-green);padding:6px 12px;border-radius:20px;font-size:0.75rem;color:var(--accent-green);z-index:999;';
+    indicator.textContent = '👁️ Cursor tracking active';
+    document.body.appendChild(indicator);
 }
 
 // ============================================
@@ -1323,6 +1441,11 @@ function init() {
     updateTime();
     updateLatency();
     updateVisitorCounter();
+    checkAnnouncement();
+    checkAutoDarkMode();
+    initEasterEggs();
+    initKonami();
+    initCursorTracking();
     fetchGithubActivity();
 
     setInterval(updateTime, 1000);

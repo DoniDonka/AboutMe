@@ -1,4 +1,4 @@
-/* DONI | DEV — Cloudflare Worker v3.3 */
+/* DONI | DEV — Cloudflare Worker v3.4 */
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -20,16 +20,29 @@ async function sendDiscord(embed, env) {
     });
 }
 
-// Simple in-memory visitor counter (resets on worker deploy)
+async function getCountryFlag(ip) {
+    try {
+        const res = await fetch('https://ipapi.co/' + ip + '/json/');
+        const data = await res.json();
+        const code = data.country_code;
+        if (!code) return '🌐';
+        // Convert country code to flag emoji
+        const base = 127397;
+        return String.fromCodePoint(base + code.charCodeAt(0), base + code.charCodeAt(1));
+    } catch (e) { return '🌐'; }
+}
+
+// In-memory storage
 let visitorCount = 0;
-const sessions = new Set();
+const sessions = new Map(); // sessionId -> {start, pages, clicks, country}
+let currentAnnouncement = null;
 
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const path = url.pathname;
+        const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
 
-        // Handle ALL CORS preflight requests
         if (request.method === 'OPTIONS') {
             return new Response(null, { headers: CORS_HEADERS });
         }
@@ -58,15 +71,41 @@ export default {
             }
         }
 
+        // Roblox proxy
+        if (path === '/roblox' && request.method === 'GET') {
+            try {
+                const res = await fetch('https://users.roblox.com/v1/users/213240910');
+                const data = await res.json();
+                return jsonResponse({
+                    name: data.name,
+                    displayName: data.displayName,
+                    description: data.description,
+                    created: data.created,
+                    isBanned: data.isBanned,
+                    externalAppDisplayName: data.externalAppDisplayName,
+                    hasVerifiedBadge: data.hasVerifiedBadge,
+                    id: data.id
+                });
+            } catch (e) {
+                return jsonResponse({ error: 'Roblox API failed', detail: e.message }, 500);
+            }
+        }
+
         // Visitor join
         if (path === '/visitor-join' && request.method === 'POST') {
             try {
                 const data = await request.json();
-                sessions.add(data.sessionId);
+                const flag = await getCountryFlag(clientIP);
+                sessions.set(data.sessionId, {
+                    start: Date.now(),
+                    pages: data.pages || [],
+                    clicks: [],
+                    country: flag
+                });
                 visitorCount = sessions.size;
                 const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 await sendDiscord({
-                    title: '👤 Visitor Joined',
+                    title: flag + ' Visitor Joined',
                     description: 'Session `' + data.sessionId + '` started at **' + time + '**',
                     color: 0x00ff88,
                     fields: [
@@ -88,14 +127,18 @@ export default {
         if (path === '/visitor-leave' && request.method === 'POST') {
             try {
                 const data = await request.json();
+                const session = sessions.get(data.sessionId);
+                const clickPath = session?.clicks?.join(' → ') || 'none';
+                const flag = session?.country || '🌐';
                 sessions.delete(data.sessionId);
                 visitorCount = sessions.size;
                 await sendDiscord({
-                    title: '🚪 Visitor Left',
+                    title: flag + ' Visitor Left',
                     description: 'Session `' + data.sessionId + '` ended after **' + data.duration + '**',
                     color: 0xff5555,
                     fields: [
                         { name: '📑 Pages Viewed', value: (data.pages || []).join(', ') || 'none', inline: false },
+                        { name: '🖱️ Click Path', value: clickPath.substring(0, 1000), inline: false },
                         { name: '#️⃣ Page Count', value: String(data.pageCount || 0), inline: true }
                     ],
                     timestamp: new Date().toISOString()
@@ -106,9 +149,23 @@ export default {
             }
         }
 
+        // Visitor click tracking (for session replay)
+        if (path === '/visitor-click' && request.method === 'POST') {
+            try {
+                const data = await request.json();
+                const session = sessions.get(data.sessionId);
+                if (session) {
+                    session.clicks.push(data.page + ':' + data.element);
+                }
+                return jsonResponse({ ok: true });
+            } catch (e) {
+                return jsonResponse({ error: e.message }, 500);
+            }
+        }
+
         // Visitor count
         if (path === '/visitor-count' && request.method === 'GET') {
-            return jsonResponse({ count: visitorCount, note: 'In-memory counter (resets on deploy)' });
+            return jsonResponse({ count: visitorCount });
         }
 
         // Admin trap alert
@@ -134,25 +191,34 @@ export default {
             }
         }
 
-
-        // Roblox proxy
-        if (path === '/roblox' && request.method === 'GET') {
+        // Discord bot endpoint — post announcement
+        if (path === '/announce' && request.method === 'POST') {
             try {
-                const res = await fetch('https://users.roblox.com/v1/users/213240910');
-                const data = await res.json();
-                return jsonResponse({
-                    name: data.name,
-                    displayName: data.displayName,
-                    description: data.description,
-                    created: data.created,
-                    isBanned: data.isBanned,
-                    externalAppDisplayName: data.externalAppDisplayName,
-                    hasVerifiedBadge: data.hasVerifiedBadge,
-                    id: data.id
-                });
+                const data = await request.json();
+                const auth = request.headers.get('Authorization');
+                if (auth !== 'Bearer ' + env.ADMIN_SECRET) {
+                    return jsonResponse({ error: 'Unauthorized' }, 401);
+                }
+                currentAnnouncement = {
+                    text: data.text,
+                    timestamp: Date.now(),
+                    id: Math.random().toString(36).slice(2, 10)
+                };
+                return jsonResponse({ ok: true, announcement: currentAnnouncement });
             } catch (e) {
-                return jsonResponse({ error: 'Roblox API failed', detail: e.message }, 500);
+                return jsonResponse({ error: e.message }, 500);
             }
+        }
+
+        // Get current announcement
+        if (path === '/announce' && request.method === 'GET') {
+            return jsonResponse({ announcement: currentAnnouncement });
+        }
+
+        // Dismiss announcement
+        if (path === '/announce/dismiss' && request.method === 'POST') {
+            currentAnnouncement = null;
+            return jsonResponse({ ok: true });
         }
 
         return jsonResponse({ error: 'Not found' }, 404);

@@ -1,8 +1,13 @@
-/* DONI | DEV — Soundscape v3.3 */
+/* DONI | DEV — Soundscape v3.4 */
 (function() {
     let audioCtx = null, droneNodes = [], isPlaying = false, masterGain = null;
 
     function soundEnabled() { return localStorage.getItem('doni_sound') === 'true'; }
+
+    function updateSoundButton() {
+        const btn = document.getElementById('soundToggle');
+        if (btn) btn.textContent = soundEnabled() ? '🔊' : '🔇';
+    }
 
     function initAudio() {
         if (audioCtx) return;
@@ -29,6 +34,7 @@
             osc.start(); lfo.start();
             droneNodes.push({ osc, gain, lfo, lfoGain });
         });
+        updateSoundButton();
     }
 
     function stopDrone() {
@@ -40,6 +46,7 @@
             } catch (e) {}
         });
         droneNodes = []; isPlaying = false;
+        updateSoundButton();
     }
 
     function playTone(freq, duration, vol, type) {
@@ -75,9 +82,27 @@
         });
     }
 
+    // Sound toggle button
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('soundToggle');
+        if (btn) {
+            updateSoundButton();
+            btn.addEventListener('click', () => {
+                const now = soundEnabled();
+                localStorage.setItem('doni_sound', now ? 'false' : 'true');
+                updateSoundButton();
+                if (!now) { startDrone(); attachSounds(); }
+                else { stopDrone(); }
+                sfx.toggle();
+            });
+        }
+    });
+
     window.addEventListener('storage', (e) => {
         if (e.key === 'doni_sound') {
-            if (e.newValue === 'true') startDrone(); else stopDrone();
+            updateSoundButton();
+            if (e.newValue === 'true') { startDrone(); attachSounds(); }
+            else stopDrone();
         }
     });
 

@@ -1,6 +1,7 @@
-/* DONI | DEV — Badge Engine v3.3 */
+/* DONI | DEV — Badge Engine v3.4 */
 (function() {
     const STORAGE_KEY = 'doni_badges';
+    const EGG_KEY = 'doni_eggs_found';
     const BADGES = [
         { id: 'first-steps', name: 'First Steps', icon: '🚀', desc: 'Visit the site for the first time', unlocked: true },
         { id: 'explorer', name: 'Explorer', icon: '🗺️', desc: 'Visit 3+ different pages in one session', unlocked: false },
@@ -11,7 +12,12 @@
         { id: 'signed', name: 'Signed', icon: '✍️', desc: 'Sign the guestbook', unlocked: false },
         { id: 'palette', name: 'Palette Pro', icon: '🎨', desc: 'Change the accent color 5+ times', unlocked: false },
         { id: 'flipper', name: 'Theme Flipper', icon: '☀️', desc: 'Toggle light/dark theme 10+ times', unlocked: false },
-        { id: 'red-pill', name: 'Red Pill', icon: '💊', desc: 'Find the hidden admin page', unlocked: false }
+        { id: 'red-pill', name: 'Red Pill', icon: '💊', desc: 'Find the hidden admin page', unlocked: false },
+        { id: 'easter-hunter', name: 'Egg Hunter', icon: '🥚', desc: 'Find all 5 hidden easter eggs', unlocked: false },
+        { id: 'chatter', name: 'Chatter', icon: '💬', desc: 'Send 10+ chat messages', unlocked: false },
+        { id: 'stylist', name: 'Stylist', icon: '🎭', desc: 'Change chat theme color', unlocked: false },
+        { id: 'audiophile', name: 'Audiophile', icon: '🔊', desc: 'Enable soundscape', unlocked: false },
+        { id: 'socialite', name: 'Socialite', icon: '🌟', desc: 'Use a chat reaction', unlocked: false }
     ];
 
     let unlocked = new Set();
@@ -54,6 +60,37 @@
         }).join('');
     }
 
+    // Easter egg tracking
+    function checkEasterEggs() {
+        const found = JSON.parse(localStorage.getItem(EGG_KEY) || '[]');
+        if (found.length >= 5) unlock('easter-hunter');
+    }
+    window.findEasterEgg = function(eggId) {
+        const found = JSON.parse(localStorage.getItem(EGG_KEY) || '[]');
+        if (!found.includes(eggId)) {
+            found.push(eggId);
+            localStorage.setItem(EGG_KEY, JSON.stringify(found));
+            if (window.DONI_SFX) window.DONI_SFX.success();
+        }
+        checkEasterEggs();
+    };
+
+    // Chat message counter
+    let chatCount = parseInt(localStorage.getItem('doni_chat_count') || '0');
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'doni_chat_count') {
+            chatCount = parseInt(e.newValue || '0');
+            if (chatCount >= 10) unlock('chatter');
+        }
+    });
+
+    // Sound badge
+    if (localStorage.getItem('doni_sound') === 'true') unlock('audiophile');
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'doni_sound' && e.newValue === 'true') unlock('audiophile');
+    });
+
+    // Auto-checks
     const hour = new Date().getHours();
     if (hour >= 0 && hour < 5) unlock('night-owl');
 
@@ -63,6 +100,8 @@
     window.addEventListener('storage', (e) => {
         if (e.key === 'doni_theme_flips' && parseInt(e.newValue || '0') >= 10) unlock('flipper');
         if (e.key === 'doni_palette_changes' && parseInt(e.newValue || '0') >= 5) unlock('palette');
+        if (e.key === 'doni_chat_theme') unlock('stylist');
+        if (e.key === 'doni_chat_reaction') unlock('socialite');
     });
 
     window.unlockBadge = unlock;
@@ -73,5 +112,6 @@
         const grid = document.getElementById('badges-grid');
         if (grid) renderBadges(grid);
         updateBadgeUI();
+        checkEasterEggs();
     });
 })();

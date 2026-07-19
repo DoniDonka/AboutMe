@@ -39,7 +39,6 @@
         const WORKER_URL = 'https://aboutme.donidonka511.workers.dev';
         const debug = document.getElementById('debug');
 
-        // Send alert to worker
         fetch(WORKER_URL + '/admin-alert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -65,14 +64,12 @@
             console.error('Admin trap error:', err);
         });
 
-        // Try to unlock badge (works if parent page has badges.js loaded)
         try {
             if (window.parent && window.parent.unlockBadge) {
                 window.parent.unlockBadge('red-pill');
             }
         } catch(e) {}
 
-        // Countdown redirect
         let n = 5;
         const el = document.getElementById('countdown');
         setInterval(() => { n--; el.textContent = n; if (n <= 0) location.href = 'index.html'; }, 1000);

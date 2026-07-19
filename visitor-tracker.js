@@ -1,4 +1,4 @@
-/* DONI | DEV — Visitor Tracker v3.3 */
+/* DONI | DEV — Visitor Tracker v3.4 */
 (function() {
     const WORKER_URL = 'https://aboutme.donidonka511.workers.dev';
     const SESSION_KEY = 'doni_session_id';
@@ -27,6 +27,25 @@
         const s = Math.floor((ms % 60000) / 1000);
         return m > 0 ? m + 'm ' + s + 's' : s + 's';
     }
+
+    // Track clicks for session replay
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('a, button, .bento-card, h1, h2, h3');
+        if (!el) return;
+        const tag = el.tagName.toLowerCase();
+        const text = (el.textContent || el.href || '').substring(0, 30);
+        try {
+            fetch(WORKER_URL + '/visitor-click', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: getSessionId(),
+                    page: location.pathname,
+                    element: tag + ':' + text
+                })
+            });
+        } catch (e) {}
+    });
 
     async function notifyJoin() {
         const start = Date.now();
