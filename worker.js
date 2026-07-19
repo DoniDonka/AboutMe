@@ -2,7 +2,7 @@
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 function jsonResponse(data, status) {
@@ -20,15 +20,21 @@ async function sendDiscord(embed, env) {
     });
 }
 
+// Simple in-memory visitor counter (resets on worker deploy)
+let visitorCount = 0;
+const sessions = new Set();
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const path = url.pathname;
 
+        // Handle ALL CORS preflight requests
         if (request.method === 'OPTIONS') {
             return new Response(null, { headers: CORS_HEADERS });
         }
 
+        // Steam proxy
         if (path === '/steam' && request.method === 'GET') {
             try {
                 const [profileRes, gamesRes] = await Promise.all([
@@ -52,9 +58,12 @@ export default {
             }
         }
 
+        // Visitor join
         if (path === '/visitor-join' && request.method === 'POST') {
             try {
                 const data = await request.json();
+                sessions.add(data.sessionId);
+                visitorCount = sessions.size;
                 const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 await sendDiscord({
                     title: '👤 Visitor Joined',
@@ -69,15 +78,18 @@ export default {
                     ],
                     timestamp: new Date().toISOString()
                 }, env);
-                return jsonResponse({ ok: true });
+                return jsonResponse({ ok: true, count: visitorCount });
             } catch (e) {
                 return jsonResponse({ error: e.message }, 500);
             }
         }
 
+        // Visitor leave
         if (path === '/visitor-leave' && request.method === 'POST') {
             try {
                 const data = await request.json();
+                sessions.delete(data.sessionId);
+                visitorCount = sessions.size;
                 await sendDiscord({
                     title: '🚪 Visitor Left',
                     description: 'Session `' + data.sessionId + '` ended after **' + data.duration + '**',
@@ -88,12 +100,18 @@ export default {
                     ],
                     timestamp: new Date().toISOString()
                 }, env);
-                return jsonResponse({ ok: true });
+                return jsonResponse({ ok: true, count: visitorCount });
             } catch (e) {
                 return jsonResponse({ error: e.message }, 500);
             }
         }
 
+        // Visitor count
+        if (path === '/visitor-count' && request.method === 'GET') {
+            return jsonResponse({ count: visitorCount, note: 'In-memory counter (resets on deploy)' });
+        }
+
+        // Admin trap alert
         if (path === '/admin-alert' && request.method === 'POST') {
             try {
                 const data = await request.json();
@@ -114,10 +132,6 @@ export default {
             } catch (e) {
                 return jsonResponse({ error: e.message }, 500);
             }
-        }
-
-        if (path === '/visitor-count' && request.method === 'GET') {
-            return jsonResponse({ count: Math.floor(Math.random() * 5) + 1, note: 'Replace with Durable Object counter' });
         }
 
         return jsonResponse({ error: 'Not found' }, 404);
