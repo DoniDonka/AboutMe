@@ -91,12 +91,13 @@
             projectId: "aboutme-8a339",
             storageBucket: "aboutme-8a339.firebasestorage.app",
             messagingSenderId: "638307646276",
-            appId: "1:638307646276:web:fe52c653fd16fa81f37511"
+            appId: "1:638307646276:web:fe52c653fd16fa81f37511",
+            measurementId: "G-KHCMH8W9WB"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const messagesRef = collection(db, "chat-messages");
+        const messagesRef = collection(db, "messages");
 
         const messagesEl = document.getElementById('chatMessages');
         const inputEl = document.getElementById('chatInput');
