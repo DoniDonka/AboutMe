@@ -61,12 +61,12 @@
                     <option value="pink">Pink</option>
                 </select>
                 <input type="text" id="chatName" placeholder="Name (optional)" maxlength="20" style="width: 140px; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem;">
-                <input type="text" id="chatInput" placeholder="Type a message... (/roll, /time, /who)" maxlength="200" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem;">
+                <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem;">
                 <button id="chatSend" class="custom-btn green" style="padding: 10px 20px;">Send</button>
             </div>
 
             <div style="font-size: 0.7rem; color: var(--text-muted);">
-                Commands: /roll /time /who — Reactions: hover a message
+                Commands: /roll /time /who
             </div>
         </div>
     </div>
@@ -147,13 +147,26 @@
             let reactionHtml = '';
             if (msg.reactions) {
                 for (const emoji in msg.reactions) {
-                    reactionHtml += '<span style="font-size:0.75rem;margin-right:6px;cursor:pointer;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;" onclick="window.addReaction('' + docId + '', '' + emoji + '')">' + emoji + ' ' + msg.reactions[emoji] + '</span>';
+                    reactionHtml = reactionHtml + '<span class="chat-reaction" data-msgid="' + docId + '" data-emoji="' + emoji + '">' + emoji + ' ' + msg.reactions[emoji] + '</span>';
                 }
             }
 
             const div = document.createElement('div');
+            div.className = 'chat-msg';
+            div.dataset.msgid = docId;
             div.style.cssText = 'padding: 10px 14px; background: ' + colors.bg + '; border-radius: 8px; border: 1px solid ' + colors.border + '; position: relative;';
-            div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="font-size:0.85rem;color:' + colors.text + ';">' + escapeHtml(msg.name || 'Anonymous') + '</strong><span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span></div><div style="font-size:0.9rem;margin-bottom:6px;">' + escapeHtml(msg.text) + '</div><div class="reaction-bar" style="display:flex;gap:4px;opacity:0;transition:opacity 0.2s;"><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="window.addReaction('' + docId + '', ' + "'" + '👍' + "'" + ')">👍</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="window.addReaction('' + docId + '', ' + "'" + '🔥' + "'" + ')">🔥</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="window.addReaction('' + docId + '', ' + "'" + '💀' + "'" + ')">💀</span><span style="cursor:pointer;font-size:0.85rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);" onclick="window.addReaction('' + docId + '', ' + "'" + '❤️' + "'" + ')">❤️</span></div><div style="margin-top:4px;">' + reactionHtml + '</div>';
+
+            const nameHtml = '<strong style="font-size:0.85rem;color:' + colors.text + ';">' + escapeHtml(msg.name || 'Anonymous') + '</strong>';
+            const timeHtml = '<span style="font-size:0.7rem;color:var(--text-muted);">' + time + '</span>';
+            const textHtml = '<div style="font-size:0.9rem;margin:6px 0;">' + escapeHtml(msg.text) + '</div>';
+            const barHtml = '<div class="reaction-bar" style="display:flex;gap:4px;opacity:0;transition:opacity 0.2s;">' +
+                '<span class="react-btn" data-emoji="thumbsup">👍</span>' +
+                '<span class="react-btn" data-emoji="fire">🔥</span>' +
+                '<span class="react-btn" data-emoji="skull">💀</span>' +
+                '<span class="react-btn" data-emoji="heart">❤️</span></div>';
+            const existingHtml = reactionHtml ? '<div style="margin-top:4px;">' + reactionHtml + '</div>' : '';
+
+            div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' + nameHtml + timeHtml + '</div>' + textHtml + barHtml + existingHtml;
 
             div.addEventListener('mouseenter', function() {
                 const bar = this.querySelector('.reaction-bar');
@@ -165,6 +178,33 @@
             });
 
             return div;
+        }
+
+        // Event delegation for reactions
+        messagesEl.addEventListener('click', function(e) {
+            const btn = e.target.closest('.react-btn');
+            if (!btn) return;
+            const msgDiv = e.target.closest('.chat-msg');
+            if (!msgDiv) return;
+            const msgId = msgDiv.dataset.msgid;
+            const emojiMap = { thumbsup: '👍', fire: '🔥', skull: '💀', heart: '❤️' };
+            const emoji = emojiMap[btn.dataset.emoji];
+            if (emoji && msgId) addReaction(msgId, emoji);
+        });
+
+        async function addReaction(msgId, emoji) {
+            try {
+                const docRef = messagesRef.doc(msgId);
+                const doc = await docRef.get();
+                const data = doc.data() || {};
+                const reactions = data.reactions || {};
+                reactions[emoji] = (reactions[emoji] || 0) + 1;
+                await docRef.update({ reactions: reactions });
+                localStorage.setItem('doni_chat_reaction', 'true');
+                if (window.unlockBadge) window.unlockBadge('socialite');
+            } catch (e) {
+                console.error('Reaction error:', e);
+            }
         }
 
         // Load messages
@@ -186,21 +226,6 @@
             statusEl.style.color = '#ff5555';
             messagesEl.innerHTML = '<div style="text-align:center;color:#ff5555;padding-top:160px;">Failed to load messages.<br>' + escapeHtml(err.message) + '</div>';
         });
-
-        window.addReaction = async function(msgId, emoji) {
-            try {
-                const docRef = messagesRef.doc(msgId);
-                const doc = await docRef.get();
-                const data = doc.data() || {};
-                const reactions = data.reactions || {};
-                reactions[emoji] = (reactions[emoji] || 0) + 1;
-                await docRef.update({ reactions: reactions });
-                localStorage.setItem('doni_chat_reaction', 'true');
-                if (window.unlockBadge) window.unlockBadge('socialite');
-            } catch (e) {
-                console.error('Reaction error:', e);
-            }
-        };
 
         async function sendMessage() {
             const text = inputEl.value.trim();
@@ -242,9 +267,9 @@
 
             // Sound triggers
             const lower = text.toLowerCase();
-            if (lower.includes('wow') || lower.includes('nice')) {
+            if (lower.indexOf('wow') >= 0 || lower.indexOf('nice') >= 0) {
                 if (window.DONI_SFX) window.DONI_SFX.success();
-            } else if (lower.includes('lol') || lower.includes('haha')) {
+            } else if (lower.indexOf('lol') >= 0 || lower.indexOf('haha') >= 0) {
                 try {
                     const ctx = new (window.AudioContext || window.webkitAudioContext)();
                     const osc = ctx.createOscillator(), gain = ctx.createGain();
@@ -254,9 +279,9 @@
                     osc.connect(gain); gain.connect(ctx.destination);
                     osc.start(); osc.stop(ctx.currentTime + 0.1);
                 } catch(e) {}
-            } else if (lower.includes('rip')) {
+            } else if (lower.indexOf('rip') >= 0) {
                 if (window.DONI_SFX) window.DONI_SFX.error();
-            } else if (lower.includes('gg')) {
+            } else if (lower.indexOf('gg') >= 0) {
                 try {
                     const ctx = new (window.AudioContext || window.webkitAudioContext)();
                     const osc = ctx.createOscillator(), gain = ctx.createGain();
