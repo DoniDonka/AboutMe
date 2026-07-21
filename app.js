@@ -319,10 +319,7 @@ const Core = {
                 const currentMetric = latencyEl ? latencyEl.innerText : 'N/A';
                 Core.SystemLogs.write(`Telemetry: ${currentMetric}`);
             }
-            else if (trigger === 'admin') {
-                toggleAdminModal(true);
-                Core.SystemLogs.write("Admin Control Panel initialized.");
-            }
+            // 'admin' command handled below — navigates to admin-panel.html
             else if (trigger === 'discord') {
                 const discordEl = document.getElementById('discord-activity-txt');
                 const status = discordEl ? discordEl.innerText : 'Not configured';
