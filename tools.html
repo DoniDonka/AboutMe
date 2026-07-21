@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools | DONI | DEV</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.5</span></a>
+        <nav class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="projects.html">Projects</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+            <a href="links.html">Links</a>
+            <a href="blog.html">Blog</a>
+            <a href="uses.html">Uses</a>
+            <a href="resume.html">Resume</a>
+            <a href="chat.html">Chat</a>
+            <a href="tools.html" class="active">Tools</a>
+            <a href="badges.html">Badges</a>
+        </nav>
+        <div class="time-display" id="time-display">Calculating time...</div>
+        <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
+        <button id="soundToggle" class="sound-toggle" title="Toggle sound">🔇</button>
+    </header>
+
+    <div class="page-hero">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Developer Toolkit</p>
+        <h1>🛠️ Tools</h1>
+        <p>Utilities built for developers. All client-side, zero external dependencies (except APIs).</p>
+    </div>
+
+    <div class="grid-container">
+        <!-- AI Chat -->
+        <div class="bento-card span-2">
+            <h2>🤖 AI Chat</h2>
+            <p style="margin-bottom:12px;font-size:0.85rem;">Ask about JS, CSS, Firebase, Node, Discord.js, HTML, or career tips.</p>
+            <div id="ai-chat-box" style="height:260px;overflow-y:auto;background:rgba(0,0,0,0.3);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;">
+                <div style="padding:10px 14px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:8px;align-self:flex-start;max-width:80%;">🤖 Hi! I'm Doni's Slave. Type anything or "help" for topics.</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <input type="text" id="ai-chat-input" class="custom-input" placeholder="Ask me anything..." style="flex:1;">
+                <button id="ai-chat-send" class="custom-btn green">Send</button>
+            </div>
+        </div>
+
+        <!-- Password Generator -->
+        <div class="bento-card">
+            <h2>🔐 Password Gen</h2>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <label style="font-size:0.8rem;white-space:nowrap;">Length:</label>
+                    <input type="number" id="pw-length" class="custom-input" value="16" min="4" max="64" style="width:80px;text-align:center;">
+                </div>
+                <input type="text" id="pw-output" class="custom-input" readonly placeholder="Click generate..." style="font-family:monospace;">
+                <div style="display:flex;gap:10px;">
+                    <button id="pw-generate" class="custom-btn green" style="flex:1;">Generate</button>
+                    <button id="pw-copy" class="custom-btn secondary">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Speed Test -->
+        <div class="bento-card span-2">
+            <h2>⌨️ Typing Speed</h2>
+            <div id="type-display" style="font-size:1.1rem;line-height:1.6;margin:16px 0;padding:16px;background:rgba(0,0,0,0.3);border-radius:10px;font-family:monospace;min-height:60px;">Click Start to begin...</div>
+            <input type="text" id="type-input" class="custom-input" placeholder="Type here..." disabled style="margin-bottom:10px;">
+            <div style="display:flex;gap:10px;align-items:center;">
+                <button id="type-start" class="custom-btn green">Start</button>
+                <span id="type-result" style="font-size:0.9rem;color:var(--text-muted);"></span>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="bento-card">
+            <h2>🏆 Leaderboard</h2>
+            <div id="type-leaderboard" style="margin-top:12px;">
+                <div style="color:var(--text-muted);font-size:0.8rem;">No scores yet.</div>
+            </div>
+        </div>
+
+        <!-- QR Generator -->
+        <div class="bento-card">
+            <h2>📱 QR Generator</h2>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px;">
+                <input type="text" id="qr-input" class="custom-input" placeholder="Enter URL or text...">
+                <button id="qr-generate" class="custom-btn green">Generate QR</button>
+                <div id="qr-output" style="text-align:center;margin-top:8px;"></div>
+            </div>
+        </div>
+
+        <!-- Music Visualizer -->
+        <div class="bento-card span-2">
+            <h2>🎵 Music Visualizer</h2>
+            <div style="margin-top:12px;">
+                <input type="file" id="viz-file" accept="audio/*" style="margin-bottom:12px;color:var(--text-muted);">
+                <canvas id="viz-canvas" width="500" height="160" style="width:100%;background:#000;border-radius:10px;border:1px solid var(--border-color);"></canvas>
+                <button id="viz-start" class="custom-btn green" style="margin-top:12px;">Start Visualizer</button>
+            </div>
+        </div>
+
+        <!-- Base64 Tool -->
+        <div class="bento-card">
+            <h2>🔤 Base64</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <textarea id="b64-input" class="custom-input" rows="4" placeholder="Enter text..."></textarea>
+                <div style="display:flex;gap:10px;">
+                    <button id="b64-encode" class="custom-btn" style="flex:1;">Encode</button>
+                    <button id="b64-decode" class="custom-btn secondary" style="flex:1;">Decode</button>
+                </div>
+                <textarea id="b64-output" class="custom-input" rows="3" readonly placeholder="Result..."></textarea>
+            </div>
+        </div>
+
+        <!-- JSON Formatter -->
+        <div class="bento-card">
+            <h2>📋 JSON Formatter</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <textarea id="json-input" class="custom-input" rows="4" placeholder='{"key": "value"}'></textarea>
+                <div style="display:flex;gap:10px;">
+                    <button id="json-pretty" class="custom-btn" style="flex:1;">Prettify</button>
+                    <button id="json-minify" class="custom-btn secondary" style="flex:1;">Minify</button>
+                </div>
+                <textarea id="json-output" class="custom-input" rows="3" readonly placeholder="Result..."></textarea>
+            </div>
+        </div>
+
+        <!-- Daily Challenge -->
+        <div class="bento-card span-2" id="daily">
+            <h2>🎯 Daily Challenge</h2>
+            <div id="daily-challenge-box" style="margin-top:12px;"></div>
+            <div style="display:flex;gap:16px;align-items:center;margin-top:16px;">
+                <button id="daily-check" class="custom-btn green">Mark Complete</button>
+                <div id="daily-streak" style="text-align:center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.5</span></div>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="projects.html">Projects</a>
+            <a href="blog.html">Blog</a>
+            <a href="contact.html">Contact</a>
+            <a href="guestbook.html">Guestbook</a>
+            <a href="chat.html">Chat</a>
+            <a href="tools.html">Tools</a>
+            <a href="badges.html">Badges</a>
+            <a href="stats.html">Stats</a>
+            <a href="changelog.html">Changelog</a>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="ui.js"></script>
+    <script src="security.js"></script>
+    <script src="features.js"></script>
+    <script src="app.js"></script>
+    <script src="enhancements.js"></script>
+    <script src="visitor-tracker.js"></script>
+    <script src="soundscape.js"></script>
+    <script src="badges.js"></script>
+    <script src="tools.js"></script>
+</body>
+</html>

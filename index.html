@@ -27,7 +27,7 @@
     <header>
         <a href="index.html" class="logo" id="logo-btn" title="Click for Admin Panel">
             <span>DONI</span>
-            <span class="logo-badge">v3.4</span>
+            <span class="logo-badge">v3.5</span>
         </a>
         <nav class="nav-links">
             <a href="index.html" class="active">Dashboard</a>
@@ -39,6 +39,7 @@
             <a href="uses.html">Uses</a>
             <a href="resume.html">Resume</a>
             <a href="chat.html">Chat</a>
+            <a href="tools.html">Tools</a>
             <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
@@ -47,6 +48,12 @@
         </div>
         <span id="availability-badge" class="availability-badge" style="display:none;"></span>
     </header>
+
+    <!-- Quote Rotator -->
+    <div id="quote-rotator" style="max-width:800px;margin:0 auto 24px;padding:20px 28px;background:rgba(0,0,0,0.3);border:1px solid var(--border-color);border-radius:16px;text-align:center;backdrop-filter:blur(10px);">
+        <div style="font-style:italic;font-size:1.05rem;line-height:1.5;transition:opacity 0.3s;">"Loading quote..."</div>
+    </div>
+    <div style="text-align:center;font-size:0.7rem;color:var(--text-muted);margin-bottom:24px;margin-top:-16px;">Changes every 30 seconds</div>
 
     <div class="grid-container">
         <!-- Card 1: Featured Project -->
@@ -350,10 +357,38 @@
             <div class="widget-head"><h2>Latest Updates</h2><span class="widget-tag">Notes</span></div>
             <div id="w-updates-body" class="widget-body"><div class="widget-hint">No updates yet.</div></div>
         </div>
-    </div>
+        <!-- Screen Time Widget -->
+        <div class="bento-card">
+            <h2>⏱️ Screen Time</h2>
+            <div id="screen-time" style="margin-top:12px;font-size:1.2rem;">
+                <strong>0m 0s</strong>
+                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">on site today</div>
+            </div>
+        </div>
 
-    <footer>
-        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.4</span></div>
+        <!-- Weather Widget -->
+        <div class="bento-card">
+            <h2>🌤️ Weather</h2>
+            <div id="weather-widget" style="margin-top:8px;">
+                <div style="text-align:center;padding:16px;">
+                    <div style="font-size:1.5rem;margin-bottom:8px;">🌤️</div>
+                    <div style="font-size:0.85rem;margin-bottom:12px;">See your local weather</div>
+                    <button id="weather-consent-btn" class="custom-btn green" style="font-size:0.8rem;">Allow Location</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Uptime -->
+        <div class="bento-card">
+            <h2>🚀 Uptime</h2>
+            <div id="system-uptime" style="margin-top:12px;font-size:1.2rem;">
+                <strong>--</strong>
+                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">since last deploy</div>
+            </div>
+        </div>
+
+    </div>
+        <div>&copy; 2026 DONI. All systems operational. <span class="version-badge">v3.5</span></div>
         <div class="footer-links">
             <a href="index.html">Home</a>
             <a href="about.html">About</a>
@@ -362,7 +397,9 @@
             <a href="contact.html">Contact</a>
             <a href="guestbook.html">Guestbook</a>
             <a href="chat.html">Chat</a>
+            <a href="tools.html">Tools</a>
             <a href="badges.html">Badges</a>
+            <a href="tools.html">Tools</a>
             <a href="stats.html">Stats</a>
             <a href="changelog.html">Changelog</a>
         </div>
@@ -562,6 +599,7 @@
     <script src="soundscape.js"></script>
     <script src="badges.js"></script>
     <script src="widgets.js"></script>
+    <script src="app-v35.js"></script>
 </body>
 
 </html>

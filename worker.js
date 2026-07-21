@@ -37,6 +37,35 @@ let visitorCount = 0;
 const sessions = new Map(); // sessionId -> {start, pages, clicks, country}
 let currentAnnouncement = null;
 
+
+
+// v3.5: Link Preview Route
+router.get('/preview', async (request) => {
+    const url = new URL(request.url).searchParams.get('url');
+    if (!url) return new Response(JSON.stringify({error:'Missing url param'}), {status:400, headers:{'Content-Type':'application/json'}});
+    try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const html = await res.text();
+        const title = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] || '';
+        const desc = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i)?.[1] || '';
+        const img = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["'][^>]*>/i)?.[1] || '';
+        return new Response(JSON.stringify({title, description:desc, image:img, url}), {headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+    } catch (e) {
+        return new Response(JSON.stringify({error:e.message}), {status:500, headers:{'Content-Type':'application/json'}});
+    }
+});
+
+// v3.5: Daily Report Route
+router.get('/daily-report', async () => {
+    const report = {
+        version: '3.5',
+        date: new Date().toISOString(),
+        features: ['Live Cursors','Screen Time','Quote Rotator','Weather','Uptime','Heatmap','Push Notifications','Boot Sequence','URL Shortener','AI Chat','Password Gen','Typing Test','QR Generator','Music Visualizer','Base64','JSON Formatter','Daily Challenge','@mentions','Link Previews','Polls','Bot'],
+        status: 'operational'
+    };
+    return new Response(JSON.stringify(report), {headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
+});
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);

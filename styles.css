@@ -2426,3 +2426,66 @@ html.intro-done .grid-container { animation-delay: 0.08s; }
     .spec-card { padding: 14px 12px; }
     .spec-icon { font-size: 1.5rem; }
 }
+
+
+/* ========== v3.5 Additions ========== */
+
+/* Boot Sequence Overlay */
+#boot-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #000; color: #00ff88;
+    font-family: 'Courier New', monospace; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.5s ease;
+}
+#boot-term {
+    width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto;
+    line-height: 1.6;
+}
+#boot-term div { margin-bottom: 2px; }
+
+/* Live Cursors */
+.live-cursor { filter: drop-shadow(0 0 4px currentColor); }
+
+/* Quote Rotator */
+#quote-rotator div { transition: opacity 0.3s ease; }
+
+/* Click Heatmap */
+#click-heatmap { mix-blend-mode: screen; }
+
+/* Tools Page Grid */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Chat Polls */
+.poll-vote:hover { background: rgba(255,255,255,0.03); border-radius: 6px; }
+
+/* Mention highlight */
+.chat-mention {
+    color: var(--accent-green);
+    font-weight: 700;
+    background: rgba(0,255,136,0.1);
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+/* Link Preview */
+.link-preview {
+    margin-top: 8px;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+
+/* Push Notify Button */
+#push-notify-btn { font-size: 1rem; }
+
+/* Responsive Tools */
+@media (max-width: 768px) {
+    .tools-grid { grid-template-columns: 1fr; }
+}

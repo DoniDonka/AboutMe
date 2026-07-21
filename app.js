@@ -1454,3 +1454,5 @@ function init() {
 
 // Run on DOM ready
 document.addEventListener('DOMContentLoaded', init);
+
+// v3.5 extensions loaded via app-v35.js
