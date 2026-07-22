@@ -1386,44 +1386,42 @@ function initCursorTracking() {
 // INITIALIZATION
 // ============================================
 function init() {
+    const run = (fn, label) => { try { fn(); } catch (e) { console.error('[init]', label || fn.name, e); } };
+
     // UI + site lock first (site lock may hide everything before anything else runs)
-    if (typeof UI !== 'undefined') UI.init();
-    if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.init();
+    run(() => { if (typeof UI !== 'undefined') UI.init(); }, 'UI.init');
+    run(() => { if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.init(); }, 'Security.SiteLock.init');
 
-    Core.SystemLogs.init();
-    bindCardGlow();
-    initCardReveal();
-    initCommandPalette();
-    initHubTabs();
-    initAdminPanel();
-    initPreviewControls();
-    initContactForm();
-    registerServiceWorker();
+    run(() => Core.SystemLogs.init(), 'SystemLogs.init');
+    run(bindCardGlow, 'bindCardGlow');
+    run(initCardReveal, 'initCardReveal');
+    run(initCommandPalette, 'initCommandPalette');
+    run(initHubTabs, 'initHubTabs');
+    run(initAdminPanel, 'initAdminPanel');
+    run(initPreviewControls, 'initPreviewControls');
+    run(initContactForm, 'initContactForm');
+    run(registerServiceWorker, 'registerServiceWorker');
 
-    if (typeof Security !== 'undefined') {
-        Security.initAdminGate();
-    }
-    if (typeof Features !== 'undefined') {
-        Features.init();
-    }
+    run(() => { if (typeof Security !== 'undefined') Security.initAdminGate(); }, 'Security.initAdminGate');
+    run(() => { if (typeof Features !== 'undefined') Features.init(); }, 'Features.init');
 
     // Initialize Firebase after a short delay to ensure DOM is ready
     setTimeout(() => {
-        initFirebase();
-        loadPersistedState();
+        run(initFirebase, 'initFirebase');
+        run(loadPersistedState, 'loadPersistedState');
     }, 100);
 
-    updateTime();
-    updateLatency();
-    updateVisitorCounter();
-    checkAnnouncement();
-    checkAutoDarkMode();
-    initEasterEggs();
-    initCursorTracking();
-    fetchGithubActivity();
+    run(updateTime, 'updateTime');
+    run(updateLatency, 'updateLatency');
+    run(updateVisitorCounter, 'updateVisitorCounter');
+    run(checkAnnouncement, 'checkAnnouncement');
+    run(checkAutoDarkMode, 'checkAutoDarkMode');
+    run(initEasterEggs, 'initEasterEggs');
+    run(initCursorTracking, 'initCursorTracking');
+    run(fetchGithubActivity, 'fetchGithubActivity');
 
-    setInterval(updateTime, 1000);
-    setInterval(updateLatency, 5000);
+    setInterval(() => run(updateTime, 'updateTime (interval)'), 1000);
+    setInterval(() => run(updateLatency, 'updateLatency (interval)'), 5000);
 }
 
 // Run on DOM ready

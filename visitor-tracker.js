@@ -47,12 +47,13 @@
         } catch (e) {}
     });
 
-    async function notifyJoin() {
+    async function notifyJoin(attempt) {
+        attempt = attempt || 0;
         const start = Date.now();
         sessionStorage.setItem(START_KEY, start.toString());
         const pages = trackPage();
         try {
-            await fetch(WORKER_URL + '/visitor-join', {
+            const res = await fetch(WORKER_URL + '/visitor-join', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -65,7 +66,13 @@
                     pages: pages
                 })
             });
-        } catch (e) {}
+            if (!res.ok && attempt < 2) {
+                setTimeout(() => notifyJoin(attempt + 1), 1500 * (attempt + 1));
+            }
+        } catch (e) {
+            // Worker may be cold-starting on the very first hit — retry a couple times.
+            if (attempt < 2) setTimeout(() => notifyJoin(attempt + 1), 1500 * (attempt + 1));
+        }
     }
 
     async function notifyLeave() {

@@ -10,6 +10,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
     <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
+    <meta property="og:title" content="Visitor Chat | DONI | DEV">
+    <meta property="og:description" content="Real-time visitor chat on DONI | DEV.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="icons/icon-512.png">
+    <meta name="twitter:card" content="summary">
 </head>
 <body>
     <header>
@@ -61,9 +66,11 @@
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                 <select id="chatTheme" style="background: #000; border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
                     <option value="green">Green</option>
+                    <option value="blue">Blue</option>
                     <option value="purple">Purple</option>
                     <option value="orange">Orange</option>
                     <option value="pink">Pink</option>
+                    <option value="cyan">Cyan</option>
                 </select>
                 <input type="text" id="chatName" placeholder="Name (optional)" maxlength="20" style="width: 140px; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
                 <input type="text" id="chatInput" placeholder="Type a message... @name to mention, /poll to create, /short <url>" style="flex: 1; background: #000; border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;">
@@ -121,8 +128,13 @@
             messagingSenderId: "123456789012",
             appId: "1:123456789012:web:abcdef1234567890abcdef"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Named app ("chat") — app.js already initializes the default app for the
+        // main project (aboutme-8a339). Using a distinct name here lets both
+        // Firebase projects run side by side instead of throwing duplicate-app.
+        const chatApp = firebase.apps.some(a => a.name === 'chat')
+            ? firebase.app('chat')
+            : firebase.initializeApp(firebaseConfig, 'chat');
+        const db = chatApp.firestore();
         const messagesRef = db.collection('messages');
         const pollsRef = db.collection('polls');
 
@@ -137,7 +149,14 @@
         const botToggle = document.getElementById('bot-toggle');
         const pollsContainer = document.getElementById('polls-container');
 
-        const themeColors = { green: '#00ff88', purple: '#a855f7', orange: '#f97316', pink: '#ec4899' };
+        const themeColors = {
+            green: getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim() || '#22c55e',
+            blue: getComputedStyle(document.documentElement).getPropertyValue('--accent-blue').trim() || '#3b82f6',
+            purple: getComputedStyle(document.documentElement).getPropertyValue('--accent-purple').trim() || '#a855f7',
+            orange: getComputedStyle(document.documentElement).getPropertyValue('--accent-orange').trim() || '#f97316',
+            pink: '#ec4899',
+            cyan: '#06b6d4'
+        };
         let myTheme = localStorage.getItem('doni_chat_theme') || 'green';
         themeEl.value = myTheme;
         let mySessionId = localStorage.getItem('doni_chat_session') || Math.random().toString(36).slice(2);
@@ -159,6 +178,7 @@
 
         function botRespond(text) {
             if (!botToggle.checked) return;
+            if (text.trim().startsWith('/')) return; // /poll, /short etc. are handled by sendMessage, not the bot
             const lower = text.toLowerCase();
             for (const b of botReplies) {
                 if (b.triggers.some(t => lower.includes(t))) {

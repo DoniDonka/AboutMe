@@ -277,15 +277,16 @@ const Features = (() => {
     }
 
     function init() {
-        trackPageView();
-        initMobileNav();
-        initKonamiCode();
-        initBackToTop();
-        initCopyEmail();
-        renderStatsPage();
-        initGuestbook();
-        initTypingEffect();
-        initGlobalStats();
+        const run = (fn, label) => { try { fn(); } catch (e) { console.error('[Features]', label || fn.name, e); } };
+        run(trackPageView, 'trackPageView');
+        run(initMobileNav, 'initMobileNav');
+        run(initKonamiCode, 'initKonamiCode');
+        run(initBackToTop, 'initBackToTop');
+        run(initCopyEmail, 'initCopyEmail');
+        run(renderStatsPage, 'renderStatsPage');
+        run(initGuestbook, 'initGuestbook');
+        run(initTypingEffect, 'initTypingEffect');
+        run(initGlobalStats, 'initGlobalStats');
     }
 
     return { init, trackPageView, renderStatsPage, getVisitorId, initGlobalStats };

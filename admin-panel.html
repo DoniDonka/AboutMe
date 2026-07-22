@@ -22,9 +22,10 @@
 <body>
     <div class="admin-login" id="adminLogin">
         <h1>🔒 Admin Access</h1>
-        <p style="color: var(--text-muted); margin-bottom: 20px;">Enter your admin key to continue.</p>
-        <input type="password" id="adminKey" placeholder="Admin key...">
-        <button class="custom-btn green" onclick="checkAdmin()" style="width: 100%; margin-top: 10px;">Unlock</button>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Sign in with your admin account.</p>
+        <input type="email" id="adminEmail" placeholder="Email" autocomplete="username">
+        <input type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
+        <button class="custom-btn green" onclick="doAdminSignIn()" style="width: 100%; margin-top: 10px;">Sign In</button>
         <p id="loginError" style="color: #ff5555; margin-top: 10px; font-size: 0.85rem;"></p>
     </div>
 
@@ -63,25 +64,52 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script>
-        const ADMIN_SECRET = 'doni-admin-2026'; // Change this! Store in Worker env for real security
+        const ADMIN_EMAIL = 'doni@admin.com';
+        const firebaseConfig = {
+            apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
+            authDomain: "aboutme-8a339.firebaseapp.com",
+            projectId: "aboutme-8a339",
+            storageBucket: "aboutme-8a339.firebasestorage.app",
+            messagingSenderId: "638307646276",
+            appId: "1:638307646276:web:fe52c653fd16fa81f37511",
+            measurementId: "G-KHCMH8W9WB"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        let adminIdToken = null;
 
-        function checkAdmin() {
-            const key = document.getElementById('adminKey').value;
-            if (key === ADMIN_SECRET || localStorage.getItem('doni_admin_key') === ADMIN_SECRET) {
-                localStorage.setItem('doni_admin_key', ADMIN_SECRET);
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                updateStats();
-            } else {
-                document.getElementById('loginError').textContent = 'Invalid key.';
-            }
+        function showPanel(show) {
+            document.getElementById('adminLogin').style.display = show ? 'none' : 'block';
+            document.getElementById('adminPanel').style.display = show ? 'block' : 'none';
         }
 
-        // Auto-login if already authenticated
-        if (localStorage.getItem('doni_admin_key') === ADMIN_SECRET) {
-            document.getElementById('adminLogin').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'block';
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
+                adminIdToken = await user.getIdToken();
+                showPanel(true);
+                updateStats();
+            } else {
+                adminIdToken = null;
+                showPanel(false);
+            }
+        });
+
+        async function doAdminSignIn() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPass').value;
+            const errEl = document.getElementById('loginError');
+            errEl.textContent = '';
+            try {
+                const cred = await firebase.auth().signInWithEmailAndPassword(email, pass);
+                if (!cred.user.email || cred.user.email.toLowerCase() !== ADMIN_EMAIL) {
+                    await firebase.auth().signOut();
+                    errEl.textContent = 'This account is not authorized.';
+                }
+            } catch (e) {
+                errEl.textContent = 'Sign in failed — check email/password.';
+            }
         }
 
         async function updateStats() {
@@ -95,11 +123,11 @@
 
         async function postAnnouncement() {
             const text = document.getElementById('announceText').value;
-            if (!text) return;
+            if (!text || !adminIdToken) return;
             try {
                 await fetch('https://aboutme.donidonka511.workers.dev/announce', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ADMIN_SECRET },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminIdToken },
                     body: JSON.stringify({ text: text })
                 });
                 alert('Announcement posted!');
@@ -107,16 +135,19 @@
         }
 
         async function clearAnnouncement() {
+            if (!adminIdToken) return;
             try {
-                await fetch('https://aboutme.donidonka511.workers.dev/announce/dismiss', { method: 'POST' });
+                await fetch('https://aboutme.donidonka511.workers.dev/announce/dismiss', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + adminIdToken }
+                });
                 alert('Announcement cleared!');
             } catch (e) { alert('Failed to clear.'); }
         }
 
         function clearChat() {
             if (confirm('Clear all chat messages? This cannot be undone.')) {
-                // Would need server-side or Firebase admin SDK
-                alert('Chat clear requires Firebase Admin SDK setup.');
+                alert('Chat clear requires a Firebase Admin SDK backend function — not wired yet.');
             }
         }
 
@@ -128,8 +159,7 @@
         }
 
         function logoutAdmin() {
-            localStorage.removeItem('doni_admin_key');
-            location.reload();
+            firebase.auth().signOut();
         }
     </script>
     <script src="app-v35.js"></script>

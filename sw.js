@@ -4,7 +4,7 @@
  * cache-first for static assets, and Firebase/API traffic always hits the network.
  */
 
-const CACHE_VERSION = 'doni-v3.4';
+const CACHE_VERSION = 'doni-v3.5';
 const APP_SHELL = [
     './',
     './index.html',
@@ -20,6 +20,7 @@ const APP_SHELL = [
     './stats.html',
     './404.html',
     './chat.html',
+    './tools.html',
     './badges.html',
     './admin-trap.html',
     './admin-panel.html',
@@ -28,10 +29,12 @@ const APP_SHELL = [
     './security.js',
     './features.js',
     './app.js',
+    './app-v35.js',
     './visitor-tracker.js',
     './soundscape.js',
     './badges.js',
     './widgets.js',
+    './tools.js',
     './manifest.json'
 ];
 

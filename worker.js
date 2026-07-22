@@ -5,7 +5,8 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const ADMIN_SECRET = 'doni-admin-2026';
+const ADMIN_SECRET = 'doni-admin-2026'; // legacy fallback only — see requireAdmin()
+const ADMIN_EMAIL = 'doni@admin.com';
 const STALE_SESSION_MS = 90000; // a session with no join/click in 90s is considered gone
 
 class Router {
@@ -51,9 +52,22 @@ async function getCountryInfo(ip) {
     } catch (e) { return { flag: '🌐', name: 'Unknown' }; }
 }
 
-function requireAdmin(request) {
+async function requireAdmin(request) {
     const auth = request.headers.get('Authorization') || '';
-    return auth === `Bearer ${ADMIN_SECRET}`;
+    if (!auth.startsWith('Bearer ')) return false;
+    const token = auth.slice(7);
+
+    // Legacy static secret — kept only so nothing old breaks immediately.
+    if (token === ADMIN_SECRET) return true;
+
+    // Real check: verify the Firebase ID token via Google's tokeninfo endpoint
+    // and confirm the email claim matches the admin account.
+    try {
+        const res = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token));
+        if (!res.ok) return false;
+        const info = await res.json();
+        return !!(info.email && info.email.toLowerCase() === ADMIN_EMAIL && info.email_verified !== 'false');
+    } catch (e) { return false; }
 }
 
 // ------------------------------------------------------------------
@@ -191,7 +205,7 @@ router.post('/admin-alert', async (request, env) => {
 // ---------------- Announcements ----------------
 
 router.post('/announce', async (request) => {
-    if (!requireAdmin(request)) return jsonResponse({ error: 'Unauthorized' }, 401);
+    if (!(await requireAdmin(request))) return jsonResponse({ error: 'Unauthorized' }, 401);
     let body;
     try { body = await request.json(); } catch (e) { return jsonResponse({ error: 'Invalid JSON' }, 400); }
     if (!body.text || !String(body.text).trim()) return jsonResponse({ error: 'Missing text' }, 400);
@@ -201,7 +215,7 @@ router.post('/announce', async (request) => {
 });
 
 router.post('/announce/dismiss', async (request) => {
-    if (!requireAdmin(request)) return jsonResponse({ error: 'Unauthorized' }, 401);
+    if (!(await requireAdmin(request))) return jsonResponse({ error: 'Unauthorized' }, 401);
     currentAnnouncement = null;
     return jsonResponse({ ok: true });
 });

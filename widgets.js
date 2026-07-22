@@ -366,12 +366,12 @@ const Widgets = (() => {
             if (card && on === false) card.style.display = 'none';
         });
 
-        renderDiscord();
-        renderGithub();
-        renderMusic();
-        renderSteam();
-        renderRoblox();
-        initAdminPowerUps();
+        // Each render fn already try/catches its own fetch, but wrap the call
+        // itself too so a bug in one widget can never block the others.
+        [renderDiscord, renderGithub, renderMusic, renderSteam, renderRoblox].forEach(fn => {
+            try { fn(); } catch (e) { console.error('[Widgets]', fn.name, e); }
+        });
+        try { initAdminPowerUps(); } catch (e) { console.error('[Widgets] initAdminPowerUps', e); }
 
         // Presence + analytics need Firebase; wait for it.
         let tries = 0;

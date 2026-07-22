@@ -207,12 +207,13 @@
 
     // ---------- Init ----------
     document.addEventListener('DOMContentLoaded', () => {
-        bootSequence();
-        initQuoteRotator();
-        initScreenTime();
-        initWeather();
-        initUptime();
-        initHeatmap();
-        initLiveCursors();
+        const run = (fn, label) => { try { fn(); } catch (e) { console.error('[app-v35]', label || fn.name, e); } };
+        run(bootSequence, 'bootSequence');
+        run(initQuoteRotator, 'initQuoteRotator');
+        run(initScreenTime, 'initScreenTime');
+        run(initWeather, 'initWeather');
+        run(initUptime, 'initUptime');
+        run(initHeatmap, 'initHeatmap');
+        run(initLiveCursors, 'initLiveCursors');
     });
 })();

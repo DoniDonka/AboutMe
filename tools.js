@@ -149,19 +149,38 @@
         }
         startBtn.addEventListener('click', async () => {
             if (!fileInput.files[0]) { if(typeof UI!=='undefined')UI.toast('Upload an audio file first','info'); return; }
+            if (!(window.AudioContext || window.webkitAudioContext)) {
+                if(typeof UI!=='undefined')UI.toast('Web Audio not supported in this browser','error');
+                return;
+            }
             const file = fileInput.files[0];
-            const url = URL.createObjectURL(file);
-            const audio = new Audio(url);
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
-            source = audioCtx.createMediaElementSource(audio);
-            source.connect(analyser); analyser.connect(audioCtx.destination);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            audio.play();
-            draw();
-            startBtn.textContent = 'Playing...';
-            audio.addEventListener('ended', () => { cancelAnimationFrame(animId); startBtn.textContent = 'Start Visualizer'; });
+            startBtn.disabled = true;
+            startBtn.textContent = 'Loading...';
+            try {
+                const url = URL.createObjectURL(file);
+                const audio = new Audio(url);
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source = audioCtx.createMediaElementSource(audio);
+                source.connect(analyser); analyser.connect(audioCtx.destination);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                await audio.play();
+                draw();
+                startBtn.textContent = 'Playing...';
+                startBtn.disabled = false;
+                audio.addEventListener('ended', () => { cancelAnimationFrame(animId); startBtn.textContent = 'Start Visualizer'; });
+                audio.addEventListener('error', () => {
+                    cancelAnimationFrame(animId);
+                    startBtn.textContent = 'Start Visualizer';
+                    startBtn.disabled = false;
+                    if(typeof UI!=='undefined')UI.toast('Could not play that file','error');
+                });
+            } catch (e) {
+                startBtn.textContent = 'Start Visualizer';
+                startBtn.disabled = false;
+                if(typeof UI!=='undefined')UI.toast('Playback blocked or unsupported file','error');
+            }
         });
     }
 
