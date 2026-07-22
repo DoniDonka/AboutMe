@@ -180,27 +180,7 @@ const Enhancements = (() => {
         });
     }
 
-    // ---------- 13. Rotating tagline / quote ----------
-    const QUOTES = [
-        'Building creative interfaces, one commit at a time.',
-        'Racing sims by night, shipping code by day.',
-        'Roblox worlds • Discord bots • web experiments.',
-        'If it renders at 60fps, ship it. 🚀',
-        'Ctrl+K to explore everything.'
-    ];
-    function quoteRotator() {
-        const el = document.getElementById('tagline-rotator');
-        if (!el) return;
-        let i = 0;
-        el.textContent = QUOTES[0];
-        setInterval(() => {
-            i = (i + 1) % QUOTES.length;
-            el.style.opacity = '0';
-            setTimeout(() => { el.textContent = QUOTES[i]; el.style.opacity = '1'; }, 300);
-        }, 5000);
-    }
-
-    // ---------- 14. Confetti ----------
+    // ---------- 13. Confetti ----------
     function confetti(count = 120) {
         if (reduceMotion) return;
         const cv = document.createElement('canvas');
@@ -483,7 +463,6 @@ const Enhancements = (() => {
         smoothAnchors();
         parallaxHero();
         readingTime();
-        quoteRotator();
         keywordEggs();
         shortcuts();
         footerSecret();

@@ -141,21 +141,6 @@
         });
     }
 
-    // ---------- 7. Push Notifications ----------
-    function initPushNotifications() {
-        if (!('Notification' in window)) return;
-        const btn = document.getElementById('push-notify-btn');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                Notification.requestPermission().then(p => {
-                    if (p === 'granted') {
-                        new Notification('DONI | DEV', { body: 'Notifications enabled! Welcome to v3.5.', icon: 'icons/icon-192.png' });
-                    }
-                });
-            });
-        }
-    }
-
     // ---------- 8. Live Cursors (simulated multi-user feel) ----------
     function initLiveCursors() {
         const cursors = [];
@@ -208,7 +193,7 @@
             const t = inputStr.trim().toLowerCase();
             if (t === 'tools') { window.location.href = 'tools.html'; return; }
             if (t === 'heatmap') { localStorage.setItem('doni_heatmap', localStorage.getItem('doni_heatmap')==='1'?'0':'1'); location.reload(); return; }
-            if (t === 'notify') { if(typeof UI!=='undefined')UI.toast('Click the bell icon in the header','info'); return; }
+            if (t === 'notify') { const btn=document.getElementById('push-notify-btn'); if(btn && !btn.disabled){btn.click();} else if(typeof UI!=='undefined'){UI.toast('Notifications not supported in this browser','info');} return; }
             if (t === 'uptime') { const d=Date.now()-new Date('2026-07-21T01:00:00Z').getTime(); const h=Math.floor(d/3600000),m=Math.floor((d%3600000)/60000),s=Math.floor((d%60000)/1000); Core.SystemLogs.write(`Uptime: ${h}h ${m}m ${s}s`); return; }
             if (t === 'weather') { Core.SystemLogs.write('Weather widget is on the dashboard.'); return; }
             if (t === 'screen') { Core.SystemLogs.write('Screen time widget is on the dashboard.'); return; }
@@ -228,7 +213,6 @@
         initWeather();
         initUptime();
         initHeatmap();
-        initPushNotifications();
         initLiveCursors();
     });
 })();

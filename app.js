@@ -24,7 +24,12 @@ let firebaseReady = false;
 function initFirebase() {
     try {
         if (typeof firebase !== 'undefined') {
-            firebase.initializeApp(firebaseConfig);
+            // Guard against re-initializing the default app — pages like chat.html
+            // initialize their own (separate) Firebase project inline and must run
+            // first; if a default app already exists, just reuse it.
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
             db = firebase.firestore();
             firebaseReady = true;
             Core.SystemLogs.write('<span style="color:#22c55e;">✓</span> Firebase connected successfully.');
@@ -289,9 +294,7 @@ const Core = {
             'light': 'Switch to light theme.',
             'link': 'Copy a link to the current page.',
             'chat': 'Navigate to Visitor Chat.',
-            'badges': 'Navigate to Achievements page.',
-            'admin': 'Navigate to admin panel (secret).',
-            'sound': 'Toggle soundscape on/off.'
+            'badges': 'Navigate to Achievements page.'
         },
         execute: function (inputStr) {
             const clean = inputStr.trim();
@@ -299,6 +302,7 @@ const Core = {
 
             const trigger = clean.toLowerCase();
             Core.SystemLogs.write(clean, true);
+            document.dispatchEvent(new CustomEvent('command-executed', { detail: { command: trigger } }));
 
             if (trigger === 'help') {
                 let commandsString = 'Available commands:<br>';
@@ -505,12 +509,6 @@ const Core = {
             else if (trigger === 'admin') {
                 window.location.href = 'admin-panel.html';
             }
-            else if (trigger === 'sound') {
-                const now = localStorage.getItem('doni_sound') === 'true';
-                localStorage.setItem('doni_sound', now ? 'false' : 'true');
-                window.dispatchEvent(new StorageEvent('storage', { key: 'doni_sound', newValue: now ? 'false' : 'true' }));
-                showNotification(now ? 'Soundscape disabled.' : 'Soundscape enabled!', 'success');
-            }
             else if (trigger === 'link') {
                 const url = window.location.href;
                 if (navigator.clipboard) {
@@ -668,6 +666,7 @@ const SEARCH_INDEX = [
     { title: 'Guestbook', url: 'guestbook.html', keywords: 'guestbook sign message leave note' },
     { title: 'Stats', url: 'stats.html', keywords: 'stats analytics page views visitors metrics' },
     { title: 'Chat', url: 'chat.html', keywords: 'chat visitor real-time messages community' },
+    { title: 'Tools', url: 'tools.html', keywords: 'tools dev toolkit password qr json base64 typing test' },
     { title: 'Badges', url: 'badges.html', keywords: 'badges achievements unlock explorer' },
     { title: 'Admin', url: 'admin-panel.html', keywords: 'admin panel secret control' }
 ];
@@ -1372,27 +1371,6 @@ function initEasterEggs() {
 }
 
 // ============================================
-// KONAMI CODE
-// ============================================
-function initKonami() {
-    const code = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-    let idx = 0;
-    document.addEventListener('keydown', (e) => {
-        if (e.key === code[idx]) {
-            idx++;
-            if (idx === code.length) {
-                idx = 0;
-                window.unlockBadge && window.unlockBadge('konami');
-                showNotification('🎮 Konami code activated!', 'success');
-                setTimeout(() => location.href = 'admin-trap.html', 1000);
-            }
-        } else {
-            idx = 0;
-        }
-    });
-}
-
-// ============================================
 // CURSOR TRACKING (settings-based)
 // ============================================
 function initCursorTracking() {
@@ -1441,7 +1419,6 @@ function init() {
     checkAnnouncement();
     checkAutoDarkMode();
     initEasterEggs();
-    initKonami();
     initCursorTracking();
     fetchGithubActivity();
 

@@ -151,10 +151,10 @@
             { triggers: ['help'], reply: '🤖 Commands: /poll Question? Option1, Option2 | /short <url> | @name to mention' },
             { triggers: ['weather'], reply: '🌤️ Check the weather widget on the dashboard!' },
             { triggers: ['time'], reply: '⏰ Look at the header — real-time clock is always running.' },
-            { triggers: ['project','projects'], reply: '🔥 Check out the Projects page for Doni's latest work.' },
+            { triggers: ['project','projects'], reply: "🔥 Check out the Projects page for Doni's latest work." },
             { triggers: ['tools'], reply: '🛠️ Visit the Tools page for password gen, QR codes, typing test, and more!' },
             { triggers: ['doni'], reply: '🧠 Doni is a full-stack dev, Discord bot builder, and creative interface designer.' },
-            { triggers: ['bot'], reply: '🤖 I am Doni's Slave. I respond when keywords are detected.' }
+            { triggers: ['bot'], reply: "🤖 I am Doni's Slave. I respond when keywords are detected." }
         ];
 
         function botRespond(text) {
@@ -205,6 +205,7 @@
                     const data = doc.data();
                     const hearts = (data.reactions && data.reactions.heart) || 0;
                     await messagesRef.doc(id).update({ 'reactions.heart': hearts + 1 });
+                    if (window.unlockBadge) window.unlockBadge('socialite');
                 } catch (e) {}
             });
             return div;

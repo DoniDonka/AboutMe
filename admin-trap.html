@@ -64,16 +64,17 @@
             console.error('Admin trap error:', err);
         });
 
-        try {
-            if (window.parent && window.parent.unlockBadge) {
-                window.parent.unlockBadge('red-pill');
-            }
-        } catch(e) {}
+        (function unlockRedPill(tries) {
+            if (window.unlockBadge) { window.unlockBadge('red-pill'); return; }
+            if (tries > 20) return; // give up after ~2s if badges.js failed to load
+            setTimeout(() => unlockRedPill((tries || 0) + 1), 100);
+        })();
 
         let n = 5;
         const el = document.getElementById('countdown');
         setInterval(() => { n--; el.textContent = n; if (n <= 0) location.href = 'index.html'; }, 1000);
     </script>
+    <script src="badges.js"></script>
     <script src="app-v35.js"></script>
 </body>
 </html>

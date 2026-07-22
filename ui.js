@@ -35,6 +35,9 @@ const UI = (() => {
             this.apply(next);
             Sound.play('click');
             UI.toast(`${next === 'light' ? '☀️' : '🌙'} ${next[0].toUpperCase() + next.slice(1)} mode`, 'info');
+            const flips = (parseInt(localStorage.getItem('doni_theme_flips') || '0', 10) || 0) + 1;
+            localStorage.setItem('doni_theme_flips', String(flips));
+            if (flips >= 10 && window.unlockBadge) window.unlockBadge('flipper');
             return next;
         },
 
@@ -46,6 +49,9 @@ const UI = (() => {
             document.querySelectorAll('.accent-swatch').forEach(s => {
                 s.classList.toggle('selected', s.dataset.accent === accent);
             });
+            const changes = (parseInt(localStorage.getItem('doni_palette_changes') || '0', 10) || 0) + 1;
+            localStorage.setItem('doni_palette_changes', String(changes));
+            if (changes >= 5 && window.unlockBadge) window.unlockBadge('palette');
         },
 
         updateMeta() {
@@ -232,6 +238,38 @@ const UI = (() => {
             if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.lock();
         });
 
+        // Push notifications
+        const notifyBtn = document.createElement('button');
+        notifyBtn.id = 'push-notify-btn';
+        notifyBtn.className = 'icon-btn';
+        const notifSupported = 'Notification' in window;
+        const notifState = notifSupported ? Notification.permission : 'unsupported';
+        notifyBtn.textContent = notifState === 'granted' ? '🔔' : '🔕';
+        notifyBtn.title = notifState === 'granted' ? 'Notifications on'
+            : notifState === 'denied' ? 'Notifications blocked in browser settings'
+            : notifSupported ? 'Enable notifications' : 'Notifications not supported';
+        notifyBtn.setAttribute('aria-label', 'Toggle notifications');
+        if (!notifSupported) notifyBtn.disabled = true;
+        notifyBtn.addEventListener('click', () => {
+            if (!notifSupported) return;
+            if (Notification.permission === 'denied') {
+                toast('Notifications are blocked — enable them in your browser settings.', 'info');
+                return;
+            }
+            if (Notification.permission === 'granted') {
+                toast('🔔 Notifications already on', 'info');
+                return;
+            }
+            Notification.requestPermission().then(p => {
+                notifyBtn.textContent = p === 'granted' ? '🔔' : '🔕';
+                notifyBtn.title = p === 'granted' ? 'Notifications on' : 'Enable notifications';
+                if (p === 'granted') {
+                    toast('🔔 Notifications enabled', 'success');
+                    try { new Notification('DONI | DEV', { body: 'You\'ll get pinged for announcements.', icon: 'icons/icon-192.png' }); } catch (e) {}
+                }
+            });
+        });
+
         // PWA install
         const installBtn = document.createElement('button');
         installBtn.id = 'pwa-install-btn';
@@ -241,7 +279,7 @@ const UI = (() => {
         installBtn.textContent = '⬇';
         installBtn.addEventListener('click', promptInstall);
 
-        wrap.append(themeBtn, accentBtn, soundBtn, lockBtn, installBtn, menu);
+        wrap.append(themeBtn, accentBtn, soundBtn, lockBtn, notifyBtn, installBtn, menu);
 
         const status = header.querySelector('.status');
         if (status && status.parentElement === header) header.insertBefore(wrap, status.nextSibling);

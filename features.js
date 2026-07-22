@@ -81,6 +81,9 @@ const Features = (() => {
         toast.textContent = '🎮 Secret Mode Unlocked';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+
+        if (window.unlockBadge) window.unlockBadge('konami');
+        setTimeout(() => { window.location.href = 'admin-trap.html'; }, 1200);
     }
 
     function initBackToTop() {
