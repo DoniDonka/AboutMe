@@ -4,7 +4,6 @@
  * push notifications, boot sequence, URL shortener, new commands.
  */
 (function() {
-    const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
     // ---------- 1. Fake Boot Sequence ----------
     function bootSequence() {

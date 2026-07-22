@@ -4,7 +4,6 @@
  * Music Visualizer, Base64, JSON Formatter, Daily Challenge.
  */
 (function() {
-    const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
     // ---------- AI Chat ----------
     function initAiChat() {
