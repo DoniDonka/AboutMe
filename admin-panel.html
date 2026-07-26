@@ -49,9 +49,32 @@
             </div>
 
             <div class="admin-card">
+                <h3>🚫 Ban / Mute a Session</h3>
+                <input type="text" id="modSessionId" placeholder="Session ID..." style="width: 100%; padding: 10px; background: #000; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; margin-bottom: 10px; font-family: monospace; font-size: 0.8rem;">
+                <div style="display: flex; gap: 8px;">
+                    <button class="custom-btn red" onclick="banSession()" style="flex: 1;">Ban</button>
+                    <button class="custom-btn" onclick="muteSession()" style="flex: 1;">Mute</button>
+                </div>
+            </div>
+
+            <div class="admin-card">
                 <h3>🚫 Banned Sessions</h3>
                 <div class="ban-list" id="banList">
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">No banned sessions.</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Loading…</div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h3>🔇 Muted Sessions</h3>
+                <div class="ban-list" id="muteList">
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Loading…</div>
+                </div>
+            </div>
+
+            <div class="admin-card" style="grid-column: 1 / -1;">
+                <h3>🚩 Reported Messages</h3>
+                <div class="ban-list" id="reportsList" style="max-height: 320px;">
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Loading…</div>
                 </div>
             </div>
 
@@ -66,6 +89,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
     <script>
         const ADMIN_EMAIL = 'doni@admin.com';
         const firebaseConfig = {
@@ -79,6 +103,7 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         let adminIdToken = null;
+        let db = null;
 
         function showPanel(show) {
             document.getElementById('adminLogin').style.display = show ? 'none' : 'block';
@@ -88,8 +113,12 @@
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL) {
                 adminIdToken = await user.getIdToken();
+                db = firebase.firestore();
                 showPanel(true);
                 updateStats();
+                loadBannedSessions();
+                loadMutedSessions();
+                loadReports();
             } else {
                 adminIdToken = null;
                 showPanel(false);
@@ -151,6 +180,103 @@
             }
         }
 
+        // ---------- Moderation ----------
+        async function banSession(idOverride) {
+            const id = (idOverride || document.getElementById('modSessionId').value.trim());
+            if (!id) { alert('Enter a session ID first.'); return; }
+            try {
+                await db.collection('bannedSessions').doc(id).set({
+                    bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('modSessionId').value = '';
+                loadBannedSessions();
+            } catch (e) { alert('Ban failed: ' + e.message); }
+        }
+
+        async function muteSession(idOverride) {
+            const id = (idOverride || document.getElementById('modSessionId').value.trim());
+            if (!id) { alert('Enter a session ID first.'); return; }
+            try {
+                await db.collection('mutedSessions').doc(id).set({
+                    mutedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                document.getElementById('modSessionId').value = '';
+                loadMutedSessions();
+            } catch (e) { alert('Mute failed: ' + e.message); }
+        }
+
+        async function unbanSession(id) {
+            try { await db.collection('bannedSessions').doc(id).delete(); loadBannedSessions(); }
+            catch (e) { alert('Unban failed: ' + e.message); }
+        }
+
+        async function unmuteSession(id) {
+            try { await db.collection('mutedSessions').doc(id).delete(); loadMutedSessions(); }
+            catch (e) { alert('Unmute failed: ' + e.message); }
+        }
+
+        async function loadBannedSessions() {
+            const el = document.getElementById('banList');
+            try {
+                const snap = await db.collection('bannedSessions').get();
+                if (snap.empty) { el.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No banned sessions.</div>'; return; }
+                el.innerHTML = snap.docs.map(d => `<div class="ban-item"><span style="font-family:monospace;font-size:0.75rem;">${d.id}</span><button onclick="unbanSession('${d.id}')" class="custom-btn" style="padding:4px 10px;font-size:0.75rem;">Unban</button></div>`).join('');
+            } catch (e) { el.innerHTML = '<div style="color:#ff5555;font-size:0.8rem;">Failed to load.</div>'; }
+        }
+
+        async function loadMutedSessions() {
+            const el = document.getElementById('muteList');
+            try {
+                const snap = await db.collection('mutedSessions').get();
+                if (snap.empty) { el.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No muted sessions.</div>'; return; }
+                el.innerHTML = snap.docs.map(d => `<div class="ban-item"><span style="font-family:monospace;font-size:0.75rem;">${d.id}</span><button onclick="unmuteSession('${d.id}')" class="custom-btn" style="padding:4px 10px;font-size:0.75rem;">Unmute</button></div>`).join('');
+            } catch (e) { el.innerHTML = '<div style="color:#ff5555;font-size:0.8rem;">Failed to load.</div>'; }
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        async function loadReports() {
+            const el = document.getElementById('reportsList');
+            try {
+                const snap = await db.collection('reports').orderBy('timestamp', 'desc').limit(20).get();
+                if (snap.empty) { el.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No reports.</div>'; return; }
+                el.innerHTML = snap.docs.map(d => {
+                    const r = d.data();
+                    const authorId = r.messageAuthorSessionId || '';
+                    const banBtnHtml = authorId
+                        ? `<button onclick="banAuthorAndDismiss('${authorId}', '${d.id}')" class="custom-btn red" style="padding:4px 10px;font-size:0.75rem;">Ban Author</button>`
+                        : '';
+                    return `<div class="ban-item" style="flex-direction:column;align-items:flex-start;gap:6px;">
+                        <div style="font-size:0.8rem;"><strong>${escapeHtml(r.messageAuthor)}</strong>: ${escapeHtml(r.messageText)}</div>
+                        <div style="display:flex;gap:8px;">
+                            ${banBtnHtml}
+                            <button onclick="dismissReport('${d.id}')" class="custom-btn" style="padding:4px 10px;font-size:0.75rem;">Dismiss</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) { el.innerHTML = '<div style="color:#ff5555;font-size:0.8rem;">Failed to load.</div>'; }
+        }
+
+        async function dismissReport(id) {
+            try { await db.collection('reports').doc(id).delete(); loadReports(); }
+            catch (e) { alert('Failed to dismiss: ' + e.message); }
+        }
+
+        async function banAuthorAndDismiss(authorId, reportId) {
+            try {
+                await db.collection('bannedSessions').doc(authorId).set({
+                    bannedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await db.collection('reports').doc(reportId).delete();
+                loadBannedSessions();
+                loadReports();
+            } catch (e) { alert('Ban failed: ' + e.message); }
+        }
+
         function resetBadges() {
             if (confirm('Reset ALL badge progress for ALL users?')) {
                 localStorage.removeItem('doni_badges');
@@ -163,5 +289,8 @@
         }
     </script>
     <script src="app-v35.js"></script>
+    <script src="live-cursors.js"></script>
+    <script src="commands-v2.js"></script>
+    <script src="site-search.js"></script>
 </body>
 </html>

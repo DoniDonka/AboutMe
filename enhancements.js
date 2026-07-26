@@ -29,6 +29,15 @@ const Enhancements = (() => {
 
     // ---------- 2. 3D tilt on cards ----------
     function cardTilt() {
+        if (!reduceMotion) {
+            document.querySelectorAll('.bento-card').forEach(card => {
+                if (!card.querySelector(':scope > .shine-sweep')) {
+                    const sweep = document.createElement('div');
+                    sweep.className = 'shine-sweep';
+                    card.appendChild(sweep);
+                }
+            });
+        }
         if (reduceMotion || isTouch) return;
         document.querySelectorAll('.bento-card').forEach(card => {
             let rid = null;
@@ -63,6 +72,112 @@ const Enhancements = (() => {
                 glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
                 rid = null;
             });
+        });
+    }
+
+    // ---------- 3b. Cursor particle trail ----------
+    function cursorTrail() {
+        if (reduceMotion || isTouch) return;
+        const POOL_SIZE = 8;
+        const dots = [];
+        for (let i = 0; i < POOL_SIZE; i++) {
+            const d = document.createElement('div');
+            d.className = 'cursor-trail-dot';
+            d.style.opacity = '0';
+            document.body.appendChild(d);
+            dots.push({ el: d, x: 0, y: 0 });
+        }
+        let mouseX = -100, mouseY = -100, active = false, hideTimer = null;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            if (!active) { active = true; dots.forEach(d => d.el.style.opacity = '1'); }
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                active = false;
+                dots.forEach(d => d.el.style.opacity = '0');
+            }, 1200);
+        });
+        // Each dot chases the one before it with a small lag, creating a trail.
+        let leadX = mouseX, leadY = mouseY;
+        function tick() {
+            leadX += (mouseX - leadX) * 0.35;
+            leadY += (mouseY - leadY) * 0.35;
+            let px = leadX, py = leadY;
+            dots.forEach((d, i) => {
+                d.x += (px - d.x) * 0.45;
+                d.y += (py - d.y) * 0.45;
+                d.el.style.transform = `translate(${d.x}px, ${d.y}px) scale(${1 - i / POOL_SIZE})`;
+                px = d.x; py = d.y;
+            });
+            raf(tick);
+        }
+        raf(tick);
+    }
+
+    // ---------- 3b. Cursor particle trail ----------
+    function cursorTrail() {
+        if (reduceMotion || isTouch) return;
+        const COUNT = 8;
+        const dots = [];
+        for (let i = 0; i < COUNT; i++) {
+            const d = document.createElement('div');
+            d.className = 'cursor-trail-dot';
+            d.style.opacity = String(1 - i / COUNT * 0.85);
+            d.style.width = d.style.height = (6 - i * 0.4) + 'px';
+            document.body.appendChild(d);
+            dots.push({ el: d, x: 0, y: 0 });
+        }
+        let mx = -100, my = -100;
+        window.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });
+        function tick() {
+            let x = mx, y = my;
+            dots.forEach((dot, i) => {
+                dot.x += (x - dot.x) * 0.35;
+                dot.y += (y - dot.y) * 0.35;
+                dot.el.style.transform = `translate(${dot.x}px, ${dot.y}px)`;
+                x = dot.x; y = dot.y;
+            });
+            raf(tick);
+        }
+        raf(tick);
+    }
+
+    // ---------- 3c. Hover shine sweep (layered on existing tilt) ----------
+    function shineSweep() {
+        if (isTouch) return;
+        document.querySelectorAll('.bento-card').forEach(card => {
+            if (card.querySelector('.shine-sweep')) return;
+            const sweep = document.createElement('div');
+            sweep.className = 'shine-sweep';
+            card.appendChild(sweep);
+        });
+    }
+
+    // ---------- 3d. Page transitions ----------
+    function pageTransitions() {
+        if (reduceMotion) return;
+        document.body.classList.add('page-entering');
+
+        let overlay = document.getElementById('page-transition');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'page-transition';
+            document.body.appendChild(overlay);
+        }
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) return;
+            const href = link.getAttribute('href');
+            // Only intercept same-site, non-anchor, non-modified-click navigations
+            if (!href || href.startsWith('#') || href.startsWith('http') ||
+                href.startsWith('mailto:') || href.startsWith('tel:') ||
+                link.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) {
+                return;
+            }
+            e.preventDefault();
+            overlay.classList.add('active');
+            setTimeout(() => { window.location.href = href; }, 200);
         });
     }
 
@@ -451,25 +566,30 @@ const Enhancements = (() => {
     }
 
     function init() {
-        scrollReveal();
-        cardTilt();
-        cursorGlow();
-        countUp();
-        greeting();
-        networkToasts();
-        dynamicTitle();
-        activeNav();
-        ripples();
-        smoothAnchors();
-        parallaxHero();
-        readingTime();
-        keywordEggs();
-        shortcuts();
-        footerSecret();
-        ambientMesh();
-        magneticButtons();
-        textScramble();
-        specSpotlight();
+        const run = (fn, label) => { try { fn(); } catch (e) { console.error('[Enhancements]', label || fn.name, e); } };
+        run(scrollReveal);
+        run(cardTilt);
+        run(cursorGlow);
+        run(cursorTrail);
+        run(cursorTrail);
+        run(shineSweep);
+        run(countUp);
+        run(greeting);
+        run(networkToasts);
+        run(dynamicTitle);
+        run(activeNav);
+        run(ripples);
+        run(smoothAnchors);
+        run(parallaxHero);
+        run(readingTime);
+        run(keywordEggs);
+        run(shortcuts);
+        run(footerSecret);
+        run(ambientMesh);
+        run(magneticButtons);
+        run(textScramble);
+        run(specSpotlight);
+        run(pageTransitions);
     }
 
     return {

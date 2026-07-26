@@ -1,15 +1,3 @@
-/**
- * Firestore rules for the MAIN Firebase project: aboutme-8a339
- * (dashboard, contact form, guestbook, admin settings, presence, analytics)
- *
- * Deploy with the Firebase CLI from a directory whose .firebaserc / active
- * project is set to aboutme-8a339:
- *   firebase deploy --only firestore:rules --project aboutme-8a339
- *
- * The CHAT project (doni-dev-dashboard) is a SEPARATE Firebase project and
- * needs its own rules file — see firestore-chat.rules — deployed separately:
- *   firebase deploy --only firestore:rules --project doni-dev-dashboard
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -20,11 +8,65 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.email == 'doni@admin.com';
     }
 
-    // Contact form submissions — anyone can submit one, only admin can read/delete
+    // Contact form submissions — private. Anyone can submit one, only admin can read/delete.
     match /messages/{doc} {
       allow create: if request.resource.data.message is string
                     && request.resource.data.email is string;
       allow read, delete: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Live visitor chat — public, separate collection from contact messages above.
+    // Banned/muted sessions are blocked from creating new messages at the rules
+    // level (not just hidden in the UI) via a lookup against bannedSessions.
+    match /chatMessages/{doc} {
+      allow read: if true;
+      allow create: if request.resource.data.text is string
+                    && request.resource.data.text.size() <= 500
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() <= 20
+                    && request.resource.data.sessionId is string
+                    && !exists(/databases/$(database)/documents/bannedSessions/$(request.resource.data.sessionId))
+                    && !exists(/databases/$(database)/documents/mutedSessions/$(request.resource.data.sessionId));
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['reactions']);
+      allow delete: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Banned sessions — admin-only to write, but readable by anyone so the
+    // client can show an honest "you are banned" state instead of messages
+    // silently failing to send.
+    match /bannedSessions/{sessionId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Muted sessions — same model as bans but lighter (can still read chat).
+    match /mutedSessions/{sessionId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Message reports — anyone can file one, only admin can read/manage them.
+    match /reports/{doc} {
+      allow create: if request.resource.data.messageId is string
+                    && request.resource.data.reporterSessionId is string;
+      allow read, delete: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Polls created via the /poll chat command
+    match /polls/{doc} {
+      allow read: if true;
+      allow create: if request.resource.data.question is string;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['votes', 'voters']);
+      allow delete: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+    }
+
+    // Blog posts / changelog entries published via the admin Posts tab —
+    // public read, admin-only write.
+    match /posts/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'doni@admin.com';
     }
 
     // Guestbook — public signing, admin can moderate
@@ -43,10 +85,21 @@ service cloud.firestore {
       allow write: if true;
     }
 
-    // Analytics (page view counters) — public increment, no auth needed for a view counter
+    // Analytics (page view counters)
     match /analytics/{doc} {
       allow read: if true;
       allow write: if true;
+    }
+
+    // Legacy/unused collections — kept open, nothing in the code currently writes to these.
+    match /short_urls/{doc} {
+      allow read, write: if true;
+    }
+    match /typing_leaderboard/{doc} {
+      allow read, write: if true;
+    }
+    match /heatmap_clicks/{doc} {
+      allow read, write: if true;
     }
 
     // Deny everything else by default

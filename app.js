@@ -212,6 +212,14 @@ function applySettingsToUI(data) {
 
     // Live widgets: availability badge, latest-update note, feature toggles
     if (typeof Widgets !== 'undefined' && Widgets.applySettings) Widgets.applySettings(data);
+
+    // Site-wide settings other modules can read synchronously (e.g. live-cursors.js
+    // checking the admin kill switch without needing its own Firestore listener).
+    window.DONI_SETTINGS = window.DONI_SETTINGS || {};
+    window.DONI_SETTINGS.cursorSharingDisabled = !!data.cursorSharingDisabled;
+    if (data.cursorSharingDisabled && window.LiveCursors && window.LiveCursors.isEnabled()) {
+        window.LiveCursors.disable();
+    }
 }
 
 // ============================================

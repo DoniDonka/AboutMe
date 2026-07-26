@@ -234,6 +234,21 @@ const Features = (() => {
         setTimeout(() => waitForDb(cb, tries + 1), 200);
     }
 
+    function categorizeReferrer(ref) {
+        if (!ref) return 'direct';
+        try {
+            const host = new URL(ref).hostname.replace(/^www\./, '');
+            if (host === window.location.hostname) return 'internal';
+            if (/google\./.test(host)) return 'google';
+            if (/discord/.test(host)) return 'discord';
+            if (/github/.test(host)) return 'github';
+            if (/(twitter|x)\.com/.test(host)) return 'twitter/x';
+            if (/reddit/.test(host)) return 'reddit';
+            if (/youtube/.test(host)) return 'youtube';
+            return host;
+        } catch (e) { return 'direct'; }
+    }
+
     function initGlobalStats() {
         waitForDb((database) => {
             const page = (window.location.pathname.split('/').pop() || 'index.html');
@@ -244,6 +259,30 @@ const Features = (() => {
             const payload = { totalViews: firebase.firestore.FieldValue.increment(1), updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
             payload['pages'] = { [pageKey]: firebase.firestore.FieldValue.increment(1) };
             ref.set(payload, { merge: true }).catch(err => console.warn('[GlobalStats] increment failed:', err));
+
+            // Daily time-series bucket + referrer breakdown for the admin analytics tab.
+            // One doc per day keeps reads cheap (admin panel just fetches the last N days).
+            // Uses update() with dot-notation paths, which is the documented-safe way to
+            // increment nested fields — set(..., {merge:true}) has known edge cases mixing
+            // FieldValue.increment() with nested dotted keys.
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const refCategory = categorizeReferrer(document.referrer);
+            const dailyRef = database.collection('analytics').doc('daily_' + today);
+            const dailyUpdate = {
+                date: today,
+                views: firebase.firestore.FieldValue.increment(1),
+                ['referrers.' + refCategory]: firebase.firestore.FieldValue.increment(1),
+                ['pages.' + pageKey]: firebase.firestore.FieldValue.increment(1)
+            };
+            dailyRef.update(dailyUpdate).catch(() => {
+                // Doc doesn't exist yet today — create it, then the dotted keys become real nested maps.
+                dailyRef.set({
+                    date: today,
+                    views: 1,
+                    referrers: { [refCategory]: 1 },
+                    pages: { [pageKey]: 1 }
+                }, { merge: true }).catch(err => console.warn('[GlobalStats] daily create failed:', err));
+            });
 
             // live-render on the stats page if present
             const el = document.getElementById('global-views-value');

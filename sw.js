@@ -35,6 +35,10 @@ const APP_SHELL = [
     './badges.js',
     './widgets.js',
     './tools.js',
+    './content-editor.js',
+    './live-cursors.js',
+    './commands-v2.js',
+    './site-search.js',
     './manifest.json'
 ];
 

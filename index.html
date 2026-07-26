@@ -263,31 +263,31 @@
         <!-- Card: Discord Live Status -->
         <div class="bento-card widget-card" data-widget="discord">
             <div class="widget-head"><h2>Discord</h2><span class="widget-tag">Lanyard</span></div>
-            <div id="w-discord-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+            <div id="w-discord-body" class="widget-body"><div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton skeleton-line w-60"></div><div class="skeleton skeleton-line w-40"></div></div></div></div>
         </div>
 
         <!-- Card: Now Playing -->
         <div class="bento-card widget-card" data-widget="music">
             <div class="widget-head"><h2>Now Playing</h2><span class="widget-tag">Music</span></div>
-            <div id="w-music-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+            <div id="w-music-body" class="widget-body"><div class="skeleton-row"><div class="skeleton skeleton-avatar" style="border-radius:8px;"></div><div class="skeleton-lines"><div class="skeleton skeleton-line w-80"></div><div class="skeleton skeleton-line w-40"></div></div></div></div>
         </div>
 
         <!-- Card: Steam -->
         <div class="bento-card widget-card" data-widget="steam">
             <div class="widget-head"><h2>Steam</h2><span class="widget-tag">Gaming</span></div>
-            <div id="w-steam-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+            <div id="w-steam-body" class="widget-body"><div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton skeleton-line w-60"></div><div class="skeleton skeleton-line w-40"></div></div></div></div>
         </div>
 
         <!-- Card: GitHub Activity -->
         <div class="bento-card span-2 widget-card" data-widget="github">
             <div class="widget-head"><h2>GitHub Activity</h2><span class="widget-tag">@DoniDonka</span></div>
-            <div id="w-github-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+            <div id="w-github-body" class="widget-body"><div class="skeleton-lines"><div class="skeleton skeleton-line w-40"></div><div class="skeleton" style="height:60px;border-radius:8px;"></div></div></div>
         </div>
 
         <!-- Card: Roblox Stats -->
         <div class="bento-card widget-card" data-widget="roblox">
             <div class="widget-head"><h2>Roblox</h2><span class="widget-tag">Builds</span></div>
-            <div id="w-roblox-body" class="widget-body"><div class="widget-hint">Loading…</div></div>
+            <div id="w-roblox-body" class="widget-body"><div class="skeleton-row"><div class="skeleton skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton skeleton-line w-60"></div><div class="skeleton skeleton-line w-40"></div></div></div></div>
         </div>
 
         <!-- Card: Tech Stack -->
@@ -476,6 +476,7 @@
                     <button class="admin-tab-btn active" data-atab="content">Content</button>
                     <button class="admin-tab-btn" data-atab="appearance">Appearance</button>
                     <button class="admin-tab-btn" data-atab="tags">Tags</button>
+                    <button class="admin-tab-btn" data-atab="posts">Posts</button>
                     <button class="admin-tab-btn" data-atab="guestbook">Guestbook</button>
                     <button class="admin-tab-btn" data-atab="messages">Messages</button>
                     <button class="admin-tab-btn" data-atab="live">Live</button>
@@ -547,13 +548,47 @@
                     <div class="admin-list" id="admin-guestbook-list"></div>
                 </div>
 
+                <!-- Posts tab (blog + changelog CMS) -->
+                <div class="admin-tab-pane" id="atab-posts">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Post Type</label>
+                        <select id="cms-post-type" class="custom-input" style="background:var(--input-bg); color:var(--text-main);">
+                            <option value="blog">Blog Post</option>
+                            <option value="changelog">Changelog Entry</option>
+                        </select>
+                    </div>
+                    <div id="cms-version-row" style="display:none;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Version</label>
+                        <input type="text" id="cms-post-version" class="custom-input" placeholder="v3.6.0">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Title</label>
+                        <input type="text" id="cms-post-title" class="custom-input" placeholder="Post title (blog only)">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Body</label>
+                        <textarea id="cms-post-body" class="custom-input" rows="4" placeholder="Post body..."></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Tags (comma-separated, blog only)</label>
+                        <input type="text" id="cms-post-tags" class="custom-input" placeholder="Firebase, JavaScript, Release">
+                    </div>
+                    <div style="padding-top: 6px; display: flex; justify-content: flex-end;">
+                        <button id="cms-post-publish" class="custom-btn green">Publish</button>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin: 12px 0 6px;">Published Posts</label>
+                        <div class="admin-list" id="cms-post-list"><div class="admin-list-empty">Loading…</div></div>
+                    </div>
+                </div>
+
                 <!-- Messages tab -->
                 <div class="admin-tab-pane" id="atab-messages">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Contact Messages (Firestore)</label>
                         <button id="admin-messages-refresh" class="snippet-btn">↻ Refresh</button>
                     </div>
-                    <div class="admin-list" id="admin-messages-list"><div class="admin-list-empty">Loading…</div></div>
+                    <div class="admin-list" id="admin-messages-list"><div class="skeleton skeleton-list-item"></div><div class="skeleton skeleton-list-item"></div><div class="skeleton skeleton-list-item"></div></div>
                 </div>
 
                 <!-- Live power-ups tab -->
@@ -565,6 +600,14 @@
                             <div class="live-stat"><div class="live-stat-num" id="admin-total-views">—</div><div class="live-stat-lbl">total views</div></div>
                             <button id="admin-analytics-refresh" class="snippet-btn">↻</button>
                         </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Views — Last 7 Days</label>
+                        <div id="admin-views-chart" class="analytics-chart"><div class="admin-list-empty" style="padding:20px;color:var(--text-muted);font-size:0.8rem;">Loading…</div></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Referrer Breakdown (7d)</label>
+                        <div id="admin-referrer-breakdown" class="referrer-breakdown"></div>
                     </div>
                     <div>
                         <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Availability / Status Override</label>
@@ -583,6 +626,13 @@
                     <div>
                         <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Feature Toggles (show / hide cards)</label>
                         <div class="toggle-grid" id="admin-toggle-row"></div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 8px;">Live Cursor Sharing</label>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button id="admin-cursor-kill" class="custom-btn secondary">Disable Site-Wide</button>
+                            <span id="admin-cursor-kill-status" style="font-size:0.78rem; color:var(--text-muted);"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -605,6 +655,10 @@
     <script src="badges.js"></script>
     <script src="widgets.js"></script>
     <script src="app-v35.js"></script>
+    <script src="live-cursors.js"></script>
+    <script src="commands-v2.js"></script>
+    <script src="site-search.js"></script>
+    <script src="content-editor.js"></script>
 </body>
 
 </html>

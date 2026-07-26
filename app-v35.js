@@ -141,28 +141,9 @@
     }
 
     // ---------- 8. Live Cursors (simulated multi-user feel) ----------
-    function initLiveCursors() {
-        const cursors = [];
-        const names = ['Alex','Sam','Jordan','Taylor'];
-        const colors = ['#ef4444','#3b82f6','#a855f7','#f97316'];
-        for (let i = 0; i < 2; i++) {
-            const el = document.createElement('div');
-            el.className = 'live-cursor';
-            el.style.cssText = `position:fixed;z-index:99998;pointer-events:none;transition:transform 0.8s ease;transform:translate(-100px,-100px);`;
-            el.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="${colors[i]}"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg><span style="background:${colors[i]};color:#000;font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px;white-space:nowrap;">${names[i]}</span>`;
-            document.body.appendChild(el);
-            cursors.push({ el, x: Math.random()*innerWidth, y: Math.random()*innerHeight, tx: Math.random()*innerWidth, ty: Math.random()*innerHeight });
-        }
-        function move() {
-            cursors.forEach(c => {
-                if (Math.random() < 0.02) { c.tx = Math.random()*innerWidth; c.ty = Math.random()*innerHeight; }
-                c.x += (c.tx - c.x) * 0.02; c.y += (c.ty - c.y) * 0.02;
-                c.el.style.transform = `translate(${c.x}px, ${c.y}px)`;
-            });
-            requestAnimationFrame(move);
-        }
-        move();
-    }
+    // Fake/simulated live cursors removed — replaced by real Firestore-backed
+    // live cursors with consent, in live-cursors.js.
+    function initLiveCursors() { /* no-op, kept so existing call sites don't error */ }
 
     // ---------- 9. URL Shortener (/short command integration) ----------
     window.shortenUrl = async function(url) {

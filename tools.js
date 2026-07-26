@@ -247,8 +247,221 @@
         }
     }
 
+    // ---------- Regex Tester ----------
+    function initRegexTester() {
+        const patternEl = document.getElementById('regex-pattern');
+        const flagsEl = document.getElementById('regex-flags');
+        const testEl = document.getElementById('regex-test-string');
+        const resultEl = document.getElementById('regex-result');
+        const matchesEl = document.getElementById('regex-matches');
+        if (!patternEl || !testEl) return;
+
+        function run() {
+            const pattern = patternEl.value;
+            const flags = flagsEl.value.replace(/[^gimsuy]/g, '');
+            const text = testEl.value;
+            if (!pattern) { resultEl.textContent = ''; matchesEl.style.display = 'none'; return; }
+            try {
+                const re = new RegExp(pattern, flags);
+                if (!text) { resultEl.textContent = 'Enter a test string.'; resultEl.style.color = 'var(--text-muted)'; matchesEl.style.display = 'none'; return; }
+                const matches = flags.includes('g') ? [...text.matchAll(re)] : (re.exec(text) ? [re.exec(text)] : []);
+                if (!matches.length) {
+                    resultEl.textContent = 'No matches.';
+                    resultEl.style.color = 'var(--text-muted)';
+                    matchesEl.style.display = 'none';
+                    return;
+                }
+                resultEl.textContent = `${matches.length} match${matches.length === 1 ? '' : 'es'} found`;
+                resultEl.style.color = 'var(--accent-green)';
+                matchesEl.style.display = 'block';
+                matchesEl.innerHTML = matches.slice(0, 20).map((m, i) => {
+                    const groups = m.length > 1 ? ' → groups: ' + m.slice(1).map(g => g === undefined ? '∅' : `"${g}"`).join(', ') : '';
+                    return `<div style="padding:4px 0;border-bottom:1px solid var(--border-color);">#${i + 1} "<span style="color:var(--accent-green);">${escapeHtmlLocal(m[0])}</span>" at index ${m.index}${escapeHtmlLocal(groups)}</div>`;
+                }).join('');
+            } catch (e) {
+                resultEl.textContent = 'Invalid regex: ' + e.message;
+                resultEl.style.color = '#ef4444';
+                matchesEl.style.display = 'none';
+            }
+        }
+        function escapeHtmlLocal(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+        [patternEl, flagsEl, testEl].forEach(el => el.addEventListener('input', run));
+    }
+
+    // ---------- Color Tool ----------
+    function initColorTool() {
+        const picker = document.getElementById('color-picker');
+        const hexInput = document.getElementById('color-hex');
+        const swatch = document.getElementById('color-swatch');
+        const rgbEl = document.getElementById('color-rgb');
+        const hslEl = document.getElementById('color-hsl');
+        if (!picker || !hexInput) return;
+
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            const num = parseInt(hex, 16);
+            if (isNaN(num) || hex.length !== 6) return null;
+            return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+        }
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; }
+            else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    default: h = (r - g) / d + 4;
+                }
+                h /= 6;
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+        function update(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return;
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            swatch.style.background = hex;
+            picker.value = hex.length === 4 ? hex : ('#' + hex.replace('#', '').padEnd(6, '0'));
+            rgbEl.textContent = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+            rgbEl.setAttribute('data-copy', `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+            hslEl.textContent = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
+            hslEl.setAttribute('data-copy', `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`);
+        }
+        picker.addEventListener('input', () => { hexInput.value = picker.value; update(picker.value); });
+        hexInput.addEventListener('input', () => {
+            const v = hexInput.value.trim();
+            if (/^#?[0-9a-fA-F]{3}$|^#?[0-9a-fA-F]{6}$/.test(v)) update(v.startsWith('#') ? v : '#' + v);
+        });
+        [rgbEl, hslEl].forEach(el => {
+            el.style.cursor = 'pointer';
+            el.addEventListener('click', () => {
+                const text = el.getAttribute('data-copy');
+                if (!text) return;
+                navigator.clipboard.writeText(text).then(() => { if (typeof UI !== 'undefined') UI.toast('Copied ' + text, 'success'); });
+            });
+        });
+        update('#22c55e');
+    }
+
+    // ---------- Cron Parser ----------
+    function initCronParser() {
+        const input = document.getElementById('cron-input');
+        const output = document.getElementById('cron-output');
+        if (!input || !output) return;
+
+        const DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function describeField(field, unit, names) {
+            if (field === '*') return `every ${unit}`;
+            if (field.includes('/')) {
+                const [range, step] = field.split('/');
+                return `every ${step} ${unit}${step === '1' ? '' : 's'}${range !== '*' ? ` starting at ${range}` : ''}`;
+            }
+            if (field.includes(',')) {
+                const parts = field.split(',').map(p => names ? (names[+p] || p) : p);
+                return `at ${unit}s ${parts.join(', ')}`;
+            }
+            if (field.includes('-')) {
+                const [a, b] = field.split('-');
+                return `${unit}s ${names ? names[+a] : a} through ${names ? names[+b] : b}`;
+            }
+            return names ? `${unit} ${names[+field] || field}` : `${unit} ${field}`;
+        }
+
+        function parse() {
+            const raw = input.value.trim();
+            if (!raw) { output.textContent = 'Enter a 5-field cron expression above.'; output.style.color = 'var(--text-muted)'; return; }
+            const parts = raw.split(/\s+/);
+            if (parts.length !== 5) {
+                output.textContent = 'A cron expression needs exactly 5 fields: minute hour day-of-month month day-of-week.';
+                output.style.color = '#ef4444';
+                return;
+            }
+            const [min, hour, dom, month, dow] = parts;
+            try {
+                const bits = [];
+                bits.push(describeField(min, 'minute'));
+                bits.push(describeField(hour, 'hour'));
+                if (dom !== '*') bits.push(describeField(dom, 'day-of-month'));
+                if (month !== '*') bits.push(describeField(month, 'month', ['', ...MONTHS]));
+                if (dow !== '*') bits.push(describeField(dow, 'weekday', DOW));
+                output.style.color = 'var(--accent-green)';
+                output.innerHTML = 'Runs ' + bits.join(', ') + '.' +
+                    (min === '*' && hour === '*' ? '<br><span style="color:#f97316;">⚠️ This runs every minute — probably not intended.</span>' : '');
+            } catch (e) {
+                output.textContent = 'Could not parse that expression.';
+                output.style.color = '#ef4444';
+            }
+        }
+        input.addEventListener('input', parse);
+    }
+
+    // ---------- Unix Timestamp Converter ----------
+    function initTimestampConverter() {
+        const input = document.getElementById('ts-input');
+        const btn = document.getElementById('ts-convert');
+        const output = document.getElementById('ts-output');
+        if (!input || !btn || !output) return;
+
+        function relative(date) {
+            const diffMs = date.getTime() - Date.now();
+            const diffSec = Math.round(diffMs / 1000);
+            const abs = Math.abs(diffSec);
+            const units = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]];
+            for (const [name, secs] of units) {
+                if (abs >= secs || name === 'second') {
+                    const val = Math.round(diffSec / secs);
+                    return `${Math.abs(val)} ${name}${Math.abs(val) === 1 ? '' : 's'} ${val < 0 ? 'ago' : 'from now'}`;
+                }
+            }
+        }
+
+        function convert() {
+            const raw = input.value.trim();
+            let date;
+            if (!raw) {
+                date = new Date();
+            } else if (/^\d+$/.test(raw)) {
+                // Accept both seconds and milliseconds timestamps
+                const num = parseInt(raw, 10);
+                date = new Date(raw.length > 10 ? num : num * 1000);
+            } else {
+                output.textContent = 'Enter a numeric Unix timestamp (seconds or ms), or leave blank for now.';
+                output.style.color = '#ef4444';
+                return;
+            }
+            if (isNaN(date.getTime())) {
+                output.textContent = 'That timestamp is out of range.';
+                output.style.color = '#ef4444';
+                return;
+            }
+            output.style.color = 'var(--text-muted)';
+            output.innerHTML = `
+                <div>Unix (s): <span style="color:var(--accent-green);">${Math.floor(date.getTime() / 1000)}</span></div>
+                <div>Unix (ms): <span style="color:var(--accent-green);">${date.getTime()}</span></div>
+                <div>ISO 8601: ${date.toISOString()}</div>
+                <div>Local: ${date.toLocaleString()}</div>
+                <div>Relative: ${relative(date)}</div>
+            `;
+        }
+        btn.addEventListener('click', convert);
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') convert(); });
+        convert(); // show "now" immediately on load
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initAiChat(); initPasswordGen(); initTypingTest(); initQrGen();
         initVisualizer(); initBase64(); initJsonFormatter(); initDailyChallenge();
+        initRegexTester(); initColorTool(); initCronParser(); initTimestampConverter();
     });
 })();

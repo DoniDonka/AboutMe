@@ -138,6 +138,57 @@
             </div>
         </div>
 
+        <!-- Regex Tester -->
+        <div class="bento-card span-2">
+            <h2>🔍 Regex Tester</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <span style="color:var(--text-muted);font-family:monospace;">/</span>
+                    <input type="text" id="regex-pattern" class="custom-input" placeholder="pattern" style="flex:1;font-family:monospace;">
+                    <span style="color:var(--text-muted);font-family:monospace;">/</span>
+                    <input type="text" id="regex-flags" class="custom-input" placeholder="gi" style="width:60px;font-family:monospace;">
+                </div>
+                <textarea id="regex-test-string" class="custom-input" rows="3" placeholder="Test string..."></textarea>
+                <div id="regex-result" style="font-size:0.85rem;color:var(--text-muted);min-height:1.2em;"></div>
+                <div id="regex-matches" style="font-family:monospace;font-size:0.85rem;background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Color Picker / Converter -->
+        <div class="bento-card">
+            <h2>🎨 Color Tool</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <input type="color" id="color-picker" value="#22c55e" style="width:50px;height:42px;border:none;border-radius:8px;background:none;cursor:pointer;">
+                    <input type="text" id="color-hex" class="custom-input" value="#22c55e" style="flex:1;font-family:monospace;">
+                </div>
+                <div id="color-swatch" style="height:50px;border-radius:8px;background:#22c55e;border:1px solid var(--border-color);"></div>
+                <div style="font-family:monospace;font-size:0.8rem;display:flex;flex-direction:column;gap:6px;">
+                    <div>RGB: <span id="color-rgb" data-copy="">34, 197, 94</span></div>
+                    <div>HSL: <span id="color-hsl" data-copy="">142, 71%, 45%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cron Expression Parser -->
+        <div class="bento-card">
+            <h2>⏰ Cron Parser</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <input type="text" id="cron-input" class="custom-input" placeholder="*/15 * * * *" style="font-family:monospace;">
+                <div id="cron-output" style="font-size:0.85rem;color:var(--text-muted);min-height:3em;">Enter a 5-field cron expression above.</div>
+            </div>
+        </div>
+
+        <!-- Unix Timestamp Converter -->
+        <div class="bento-card">
+            <h2>🕐 Timestamp</h2>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+                <input type="text" id="ts-input" class="custom-input" placeholder="Unix timestamp or leave blank for now">
+                <button id="ts-convert" class="custom-btn green">Convert</button>
+                <div id="ts-output" style="font-family:monospace;font-size:0.82rem;color:var(--text-muted);line-height:1.6;"></div>
+            </div>
+        </div>
+
         <!-- Daily Challenge -->
         <div class="bento-card span-2" id="daily">
             <h2>🎯 Daily Challenge</h2>
@@ -179,5 +230,8 @@
     <script src="badges.js"></script>
     <script src="tools.js"></script>
     <script src="app-v35.js"></script>
+    <script src="live-cursors.js"></script>
+    <script src="commands-v2.js"></script>
+    <script src="site-search.js"></script>
 </body>
 </html>

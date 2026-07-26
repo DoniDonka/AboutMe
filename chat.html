@@ -58,7 +58,9 @@
             </div>
 
             <div id="chatMessages" style="height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
-                <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding-top: 160px;">Loading messages...</div>
+                <div class="skeleton" style="width:55%;height:44px;border-radius:10px;align-self:flex-start;"></div>
+                <div class="skeleton" style="width:40%;height:36px;border-radius:10px;align-self:flex-end;"></div>
+                <div class="skeleton" style="width:65%;height:44px;border-radius:10px;align-self:flex-start;"></div>
             </div>
 
             <div id="typingIndicator" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; height: 20px; opacity: 0; transition: opacity 0.3s;">Someone is typing...</div>
@@ -120,22 +122,11 @@
     <script src="badges.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyD7qxvFvo6T9hGqE8kUQ1iR7rXt0v1xY2A",
-            authDomain: "doni-dev-dashboard.firebaseapp.com",
-            projectId: "doni-dev-dashboard",
-            storageBucket: "doni-dev-dashboard.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890abcdef"
-        };
-        // Named app ("chat") — app.js already initializes the default app for the
-        // main project (aboutme-8a339). Using a distinct name here lets both
-        // Firebase projects run side by side instead of throwing duplicate-app.
-        const chatApp = firebase.apps.some(a => a.name === 'chat')
-            ? firebase.app('chat')
-            : firebase.initializeApp(firebaseConfig, 'chat');
-        const db = chatApp.firestore();
-        const messagesRef = db.collection('messages');
+        // app.js (loaded above) already calls firebase.initializeApp() for the
+        // one real project, aboutme-8a339. Reuse that default app here instead
+        // of pointing at a separate project that doesn't exist.
+        const db = firebase.firestore();
+        const messagesRef = db.collection('chatMessages');
         const pollsRef = db.collection('polls');
 
         const chatBox = document.getElementById('chatMessages');
@@ -163,6 +154,31 @@
         localStorage.setItem('doni_chat_session', mySessionId);
         let chatMsgCount = parseInt(localStorage.getItem('doni_chat_count') || '0');
         let lastTyping = 0;
+        let isBanned = false;
+        let isMuted = false;
+
+        // ---------- Ban / mute check ----------
+        async function checkModerationStatus() {
+            try {
+                const [banDoc, muteDoc] = await Promise.all([
+                    db.collection('bannedSessions').doc(mySessionId).get(),
+                    db.collection('mutedSessions').doc(mySessionId).get()
+                ]);
+                isBanned = banDoc.exists;
+                isMuted = muteDoc.exists;
+                if (isBanned) {
+                    inputEl.disabled = true;
+                    inputEl.placeholder = 'You have been banned from chat.';
+                    sendBtn.disabled = true;
+                    if (typeof UI !== 'undefined') UI.toast('You are banned from chat', 'error');
+                } else if (isMuted) {
+                    inputEl.disabled = true;
+                    inputEl.placeholder = 'You are muted — you can still read chat.';
+                    sendBtn.disabled = true;
+                }
+            } catch (e) { /* rules deny read on missing doc lookups sometimes — fail open, server still enforces the real block */ }
+        }
+        checkModerationStatus();
 
         // ---------- Bot Responses ----------
         const botReplies = [
@@ -216,7 +232,8 @@
             const div = document.createElement('div');
             div.dataset.id = id;
             div.style.cssText = `padding: 10px 14px; border-radius: 10px; max-width: 80%; font-size: 0.9rem; line-height: 1.4; align-self: ${isMe ? 'flex-end' : 'flex-start'}; background: ${isMe ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isMe ? 'rgba(59,130,246,0.3)' : 'var(--border-color)'};`;
-            div.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: ${color};">${name}</div><div>${processedText}</div>${previewHtml}<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 8px; align-items: center;"><span>${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now'}</span><button class="react-btn" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.6;">❤️ ${msg.reactions && msg.reactions.heart ? msg.reactions.heart : 0}</button></div>`;
+            const reportBtnHtml = isMe ? '' : `<button class="report-btn" title="Report message" style="background:none;border:none;cursor:pointer;font-size:0.8rem;opacity:0.4;">🚩</button>`;
+            div.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: ${color};">${name}</div><div>${processedText}</div>${previewHtml}<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 8px; align-items: center;"><span>${msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now'}</span><button class="react-btn" style="background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.6;">❤️ ${msg.reactions && msg.reactions.heart ? msg.reactions.heart : 0}</button>${reportBtnHtml}</div>`;
 
             const reactBtn = div.querySelector('.react-btn');
             reactBtn.addEventListener('click', async () => {
@@ -228,6 +245,32 @@
                     if (window.unlockBadge) window.unlockBadge('socialite');
                 } catch (e) {}
             });
+
+            const reportBtn = div.querySelector('.report-btn');
+            if (reportBtn) {
+                reportBtn.addEventListener('click', async () => {
+                    reportBtn.disabled = true;
+                    reportBtn.style.opacity = '1';
+                    reportBtn.textContent = '⏳';
+                    try {
+                        await db.collection('reports').add({
+                            messageId: id,
+                            messageText: (msg.text || '').substring(0, 500),
+                            messageAuthor: name,
+                            messageAuthorSessionId: msg.sessionId || '',
+                            reporterSessionId: mySessionId,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        reportBtn.textContent = '✅';
+                        if (typeof UI !== 'undefined') UI.toast('Reported — thanks for flagging this', 'success');
+                    } catch (e) {
+                        reportBtn.disabled = false;
+                        reportBtn.style.opacity = '0.4';
+                        reportBtn.textContent = '🚩';
+                        if (typeof UI !== 'undefined') UI.toast('Report failed, try again', 'error');
+                    }
+                });
+            }
             return div;
         }
 
@@ -268,6 +311,8 @@
 
         // ---------- Send Message ----------
         async function sendMessage() {
+            if (isBanned) { if (typeof UI !== 'undefined') UI.toast('You are banned from chat', 'error'); return; }
+            if (isMuted) { if (typeof UI !== 'undefined') UI.toast('You are muted', 'error'); return; }
             const text = inputEl.value.trim();
             const name = nameEl.value.trim() || 'Anonymous';
             if (!text) return;
@@ -392,5 +437,8 @@
         setInterval(updateVisitorCount, 10000);
     </script>
     <script src="app-v35.js"></script>
+    <script src="live-cursors.js"></script>
+    <script src="commands-v2.js"></script>
+    <script src="site-search.js"></script>
 </body>
 </html>

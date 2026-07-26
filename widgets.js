@@ -304,14 +304,80 @@ const Widgets = (() => {
             const snap = await db.collection('presence').where('t', '>', cutoff).get();
             if (online) online.textContent = String(snap.size);
         } catch (e) { if (online) online.textContent = '—'; }
+
+        await renderWeeklyAnalytics();
+    }
+
+    async function renderWeeklyAnalytics() {
+        const chartEl = el('admin-views-chart');
+        const refEl = el('admin-referrer-breakdown');
+        if (!chartEl && !refEl) return;
+        if (typeof db === 'undefined' || !db) return;
+
+        // Build the last 7 calendar dates (today included) and fetch each daily doc.
+        // 7 individual gets rather than a range query — keeps this simple and avoids
+        // needing a composite index for a query on document ID prefixes.
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(Date.now() - i * 86400000);
+            days.push(d.toISOString().slice(0, 10));
+        }
+
+        let docs;
+        try {
+            docs = await Promise.all(days.map(d => db.collection('analytics').doc('daily_' + d).get()));
+        } catch (e) {
+            if (chartEl) chartEl.innerHTML = '<div class="admin-list-empty" style="padding:20px;color:var(--text-muted);font-size:0.8rem;">Failed to load.</div>';
+            return;
+        }
+
+        const dayCounts = days.map((d, i) => (docs[i].exists ? (docs[i].data().views || 0) : 0));
+        const maxCount = Math.max(1, ...dayCounts);
+        const dowShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        if (chartEl) {
+            chartEl.innerHTML = days.map((d, i) => {
+                const count = dayCounts[i];
+                const pct = Math.max(4, Math.round((count / maxCount) * 100));
+                const dow = dowShort[new Date(d + 'T00:00:00').getDay()];
+                return `<div class="analytics-chart-bar">
+                    <div class="analytics-chart-count">${count || ''}</div>
+                    <div class="analytics-chart-fill" style="height:${pct}%;"></div>
+                    <div class="analytics-chart-label">${dow}</div>
+                </div>`;
+            }).join('');
+        }
+
+        if (refEl) {
+            const totals = {};
+            docs.forEach(doc => {
+                if (!doc.exists) return;
+                const refs = doc.data().referrers || {};
+                Object.entries(refs).forEach(([k, v]) => { totals[k] = (totals[k] || 0) + v; });
+            });
+            const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            if (!entries.length) {
+                refEl.innerHTML = '<div class="admin-list-empty" style="color:var(--text-muted);font-size:0.8rem;">No referrer data yet.</div>';
+            } else {
+                const max = Math.max(...entries.map(e => e[1]));
+                refEl.innerHTML = entries.map(([name, count]) => `
+                    <div class="referrer-row">
+                        <div class="referrer-name">${name}</div>
+                        <div class="referrer-track"><div class="referrer-fill" style="width:${Math.round((count / max) * 100)}%;"></div></div>
+                        <div class="referrer-count">${count}</div>
+                    </div>
+                `).join('');
+            }
+        }
     }
 
     function startPresence() {
         if (typeof db === 'undefined' || !db || typeof firebaseReady === 'undefined' || !firebaseReady) return;
         sessionId = 'p_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        window._presenceSessionId = sessionId; // shared with live-cursors.js
         const beat = () => {
             db.collection('presence').doc(sessionId)
-                .set({ t: firebase.firestore.FieldValue.serverTimestamp() })
+                .set({ t: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
                 .catch(() => { /* best effort */ });
         };
         beat();
@@ -353,8 +419,36 @@ const Widgets = (() => {
         // React to admin tab opening
         document.querySelectorAll('.admin-tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                if (btn.dataset.atab === 'live') refreshLiveAnalytics();
+                if (btn.dataset.atab === 'live') { refreshLiveAnalytics(); updateCursorKillUI(); }
             });
+        });
+
+        // Live cursor sharing kill switch
+        const cursorKillBtn = el('admin-cursor-kill');
+        const cursorKillStatus = el('admin-cursor-kill-status');
+        function updateCursorKillUI() {
+            const disabled = !!(window.DONI_SETTINGS && window.DONI_SETTINGS.cursorSharingDisabled);
+            if (cursorKillBtn) cursorKillBtn.textContent = disabled ? 'Re-enable Site-Wide' : 'Disable Site-Wide';
+            if (cursorKillStatus) cursorKillStatus.textContent = disabled
+                ? 'Currently OFF for all visitors.'
+                : 'Currently ON (subject to each visitor\'s own consent).';
+        }
+        updateCursorKillUI();
+        if (cursorKillBtn) cursorKillBtn.addEventListener('click', async () => {
+            const currentlyDisabled = !!(window.DONI_SETTINGS && window.DONI_SETTINGS.cursorSharingDisabled);
+            const next = !currentlyDisabled;
+            cursorKillBtn.disabled = true;
+            const result = await FirestoreDB.saveSettings({ cursorSharingDisabled: next });
+            cursorKillBtn.disabled = false;
+            if (result.success) {
+                window.DONI_SETTINGS = window.DONI_SETTINGS || {};
+                window.DONI_SETTINGS.cursorSharingDisabled = next;
+                if (next && window.LiveCursors && window.LiveCursors.isEnabled()) window.LiveCursors.disable();
+                updateCursorKillUI();
+                if (typeof UI !== 'undefined') UI.toast(next ? 'Cursor sharing disabled site-wide' : 'Cursor sharing re-enabled', 'success');
+            } else {
+                if (typeof UI !== 'undefined') UI.toast('Failed to save — check admin auth', 'error');
+            }
         });
     }
 

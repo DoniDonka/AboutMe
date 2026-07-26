@@ -270,6 +270,41 @@ const UI = (() => {
             });
         });
 
+        // Settings panel (cursor sharing + future preferences)
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'icon-btn';
+        settingsBtn.title = 'Settings';
+        settingsBtn.setAttribute('aria-label', 'Settings');
+        settingsBtn.textContent = '⚙️';
+
+        const settingsMenu = document.createElement('div');
+        settingsMenu.className = 'settings-menu';
+        let cursorPref = '1';
+        try { cursorPref = localStorage.getItem('doni_cursor_share_pref') || '1'; } catch (e) {}
+        settingsMenu.innerHTML = `
+            <div class="settings-menu-title">Settings</div>
+            <label class="settings-menu-row">
+                <span>Share my cursor with others</span>
+                <input type="checkbox" id="settings-cursor-share" ${cursorPref === '1' ? 'checked' : ''}>
+            </label>
+            <div class="settings-menu-hint">When on, other visitors on the same page can see a live dot for your mouse (only if you've also said yes to the on-page prompt).</div>
+        `;
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!wrap.contains(e.target)) settingsMenu.classList.remove('open');
+        });
+        settingsMenu.querySelector('#settings-cursor-share').addEventListener('change', (e) => {
+            if (typeof window.LiveCursors !== 'undefined') {
+                window.LiveCursors.setPreference(e.target.checked);
+            } else {
+                try { localStorage.setItem('doni_cursor_share_pref', e.target.checked ? '1' : '0'); } catch (err) {}
+            }
+            toast(e.target.checked ? 'Cursor sharing enabled' : 'Cursor sharing disabled', 'info');
+        });
+
         // PWA install
         const installBtn = document.createElement('button');
         installBtn.id = 'pwa-install-btn';
@@ -279,7 +314,7 @@ const UI = (() => {
         installBtn.textContent = '⬇';
         installBtn.addEventListener('click', promptInstall);
 
-        wrap.append(themeBtn, accentBtn, soundBtn, lockBtn, notifyBtn, installBtn, menu);
+        wrap.append(themeBtn, accentBtn, soundBtn, lockBtn, notifyBtn, settingsBtn, installBtn, menu, settingsMenu);
 
         const status = header.querySelector('.status');
         if (status && status.parentElement === header) header.insertBefore(wrap, status.nextSibling);
