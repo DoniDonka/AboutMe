@@ -29,6 +29,7 @@ const APP_SHELL = [
     './security.js',
     './features.js',
     './app.js',
+    './accounts.js',
     './app-v35.js',
     './visitor-tracker.js',
     './soundscape.js',

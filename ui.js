@@ -96,8 +96,8 @@ const UI = (() => {
         toggle() {
             this.enabled = !this.enabled;
             localStorage.setItem(SOUND_KEY, this.enabled ? '1' : '0');
-            const btn = document.getElementById('sound-toggle-btn');
-            if (btn) btn.textContent = this.enabled ? '🔊' : '🔇';
+            const checkbox = document.getElementById('settings-sound-toggle');
+            if (checkbox) checkbox.checked = this.enabled;
             if (this.enabled) this.play('success');
             UI.toast(this.enabled ? '🔊 Sound on' : '🔇 Sound off', 'info');
             return this.enabled;
@@ -180,7 +180,7 @@ const UI = (() => {
         wrap.className = 'header-controls';
         wrap.style.position = 'relative';
 
-        // Theme toggle
+        // Theme toggle — kept as a standalone one-tap button, used daily.
         const themeBtn = document.createElement('button');
         themeBtn.id = 'theme-toggle-btn';
         themeBtn.className = 'icon-btn';
@@ -189,88 +189,8 @@ const UI = (() => {
         themeBtn.textContent = Theme.get() === 'light' ? '🌙' : '☀️';
         themeBtn.addEventListener('click', () => Theme.toggle());
 
-        // Accent picker
-        const accentBtn = document.createElement('button');
-        accentBtn.className = 'icon-btn';
-        accentBtn.title = 'Accent color';
-        accentBtn.setAttribute('aria-label', 'Accent color');
-        accentBtn.textContent = '🎨';
-
-        const menu = document.createElement('div');
-        menu.className = 'accent-menu';
-        ACCENTS.forEach(a => {
-            const sw = document.createElement('div');
-            sw.className = 'accent-swatch' + (Theme.getAccent() === a ? ' selected' : '');
-            sw.dataset.accent = a;
-            sw.style.background = ACCENT_HEX[a];
-            sw.title = a;
-            sw.addEventListener('click', () => {
-                Theme.setAccent(a);
-                Sound.play('click');
-                menu.classList.remove('open');
-            });
-            menu.appendChild(sw);
-        });
-        accentBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('open');
-        });
-        document.addEventListener('click', (e) => {
-            if (!wrap.contains(e.target)) menu.classList.remove('open');
-        });
-
-        // Sound toggle
-        const soundBtn = document.createElement('button');
-        soundBtn.id = 'sound-toggle-btn';
-        soundBtn.className = 'icon-btn';
-        soundBtn.title = 'Toggle sound FX';
-        soundBtn.setAttribute('aria-label', 'Toggle sound');
-        soundBtn.textContent = Sound.enabled ? '🔊' : '🔇';
-        soundBtn.addEventListener('click', () => Sound.toggle());
-
-        // Lock (site) button
-        const lockBtn = document.createElement('button');
-        lockBtn.className = 'icon-btn';
-        lockBtn.title = 'Lock site';
-        lockBtn.setAttribute('aria-label', 'Lock site');
-        lockBtn.textContent = '🔒';
-        lockBtn.addEventListener('click', () => {
-            if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.lock();
-        });
-
-        // Push notifications
-        const notifyBtn = document.createElement('button');
-        notifyBtn.id = 'push-notify-btn';
-        notifyBtn.className = 'icon-btn';
-        const notifSupported = 'Notification' in window;
-        const notifState = notifSupported ? Notification.permission : 'unsupported';
-        notifyBtn.textContent = notifState === 'granted' ? '🔔' : '🔕';
-        notifyBtn.title = notifState === 'granted' ? 'Notifications on'
-            : notifState === 'denied' ? 'Notifications blocked in browser settings'
-            : notifSupported ? 'Enable notifications' : 'Notifications not supported';
-        notifyBtn.setAttribute('aria-label', 'Toggle notifications');
-        if (!notifSupported) notifyBtn.disabled = true;
-        notifyBtn.addEventListener('click', () => {
-            if (!notifSupported) return;
-            if (Notification.permission === 'denied') {
-                toast('Notifications are blocked — enable them in your browser settings.', 'info');
-                return;
-            }
-            if (Notification.permission === 'granted') {
-                toast('🔔 Notifications already on', 'info');
-                return;
-            }
-            Notification.requestPermission().then(p => {
-                notifyBtn.textContent = p === 'granted' ? '🔔' : '🔕';
-                notifyBtn.title = p === 'granted' ? 'Notifications on' : 'Enable notifications';
-                if (p === 'granted') {
-                    toast('🔔 Notifications enabled', 'success');
-                    try { new Notification('DONI | DEV', { body: 'You\'ll get pinged for announcements.', icon: 'icons/icon-192.png' }); } catch (e) {}
-                }
-            });
-        });
-
-        // Settings panel (cursor sharing + future preferences)
+        // Everything else lives inside one Settings menu so the header stays
+        // focused on the portfolio content, not a row of app-toolbar icons.
         const settingsBtn = document.createElement('button');
         settingsBtn.className = 'icon-btn';
         settingsBtn.title = 'Settings';
@@ -279,16 +199,92 @@ const UI = (() => {
 
         const settingsMenu = document.createElement('div');
         settingsMenu.className = 'settings-menu';
+
+        // -- Accent color row --
+        const accentRow = document.createElement('div');
+        accentRow.className = 'settings-menu-row';
+        const accentLabel = document.createElement('span');
+        accentLabel.textContent = 'Accent color';
+        const accentSwatches = document.createElement('div');
+        accentSwatches.style.cssText = 'display:flex;gap:6px;';
+        ACCENTS.forEach(a => {
+            const sw = document.createElement('div');
+            sw.className = 'accent-swatch' + (Theme.getAccent() === a ? ' selected' : '');
+            sw.dataset.accent = a;
+            sw.style.background = ACCENT_HEX[a];
+            sw.title = a;
+            sw.addEventListener('click', () => { Theme.setAccent(a); Sound.play('click'); });
+            accentSwatches.appendChild(sw);
+        });
+        accentRow.append(accentLabel, accentSwatches);
+
+        // -- Sound toggle row --
+        const soundRow = document.createElement('label');
+        soundRow.className = 'settings-menu-row';
+        soundRow.innerHTML = `<span>Interface sound FX</span><input type="checkbox" id="settings-sound-toggle" ${Sound.enabled ? 'checked' : ''}>`;
+        soundRow.querySelector('input').addEventListener('change', () => Sound.toggle());
+
+        // -- Notifications row --
+        const notifSupported = 'Notification' in window;
+        const notifState = notifSupported ? Notification.permission : 'unsupported';
+        const notifRow = document.createElement('label');
+        notifRow.className = 'settings-menu-row';
+        notifRow.innerHTML = `<span>Browser notifications</span><input type="checkbox" id="settings-notify-toggle" ${notifState === 'granted' ? 'checked' : ''} ${!notifSupported ? 'disabled' : ''}>`;
+        notifRow.querySelector('input').addEventListener('change', (e) => {
+            if (!notifSupported) return;
+            if (Notification.permission === 'denied') {
+                e.target.checked = false;
+                toast('Notifications are blocked — enable them in your browser settings.', 'info');
+                return;
+            }
+            if (!e.target.checked) { toast('You can re-enable this anytime.', 'info'); return; }
+            Notification.requestPermission().then(p => {
+                e.target.checked = p === 'granted';
+                if (p === 'granted') {
+                    toast('🔔 Notifications enabled', 'success');
+                    try { new Notification('DONI | DEV', { body: 'You\'ll get pinged for announcements.', icon: 'icons/icon-192.png' }); } catch (err) {}
+                }
+            });
+        });
+
+        // -- Cursor sharing row --
         let cursorPref = '1';
         try { cursorPref = localStorage.getItem('doni_cursor_share_pref') || '1'; } catch (e) {}
-        settingsMenu.innerHTML = `
-            <div class="settings-menu-title">Settings</div>
-            <label class="settings-menu-row">
-                <span>Share my cursor with others</span>
-                <input type="checkbox" id="settings-cursor-share" ${cursorPref === '1' ? 'checked' : ''}>
-            </label>
-            <div class="settings-menu-hint">When on, other visitors on the same page can see a live dot for your mouse (only if you've also said yes to the on-page prompt).</div>
-        `;
+        const cursorRow = document.createElement('label');
+        cursorRow.className = 'settings-menu-row';
+        cursorRow.innerHTML = `<span>Share my cursor with others</span><input type="checkbox" id="settings-cursor-share" ${cursorPref === '1' ? 'checked' : ''}>`;
+        cursorRow.querySelector('input').addEventListener('change', (e) => {
+            if (typeof window.LiveCursors !== 'undefined') window.LiveCursors.setPreference(e.target.checked);
+            else { try { localStorage.setItem('doni_cursor_share_pref', e.target.checked ? '1' : '0'); } catch (err) {} }
+            toast(e.target.checked ? 'Cursor sharing enabled' : 'Cursor sharing disabled', 'info');
+        });
+
+        // -- Lock site button --
+        const lockRow = document.createElement('button');
+        lockRow.className = 'custom-btn secondary';
+        lockRow.style.cssText = 'width:100%;margin-top:6px;font-size:0.78rem;padding:9px;';
+        lockRow.textContent = '🔒 Lock this site';
+        lockRow.addEventListener('click', () => {
+            if (typeof Security !== 'undefined' && Security.SiteLock) Security.SiteLock.lock();
+        });
+
+        // -- Install app button --
+        const installRow = document.createElement('button');
+        installRow.id = 'pwa-install-btn';
+        installRow.className = 'custom-btn secondary';
+        installRow.style.cssText = 'width:100%;margin-top:8px;font-size:0.78rem;padding:9px;';
+        installRow.textContent = '⬇ Install app';
+        installRow.addEventListener('click', promptInstall);
+
+        settingsMenu.append(
+            document.createTextNode(''), // placeholder for title, set below
+            accentRow, soundRow, notifRow, cursorRow, lockRow, installRow
+        );
+        const settingsTitle = document.createElement('div');
+        settingsTitle.className = 'settings-menu-title';
+        settingsTitle.textContent = 'Settings';
+        settingsMenu.insertBefore(settingsTitle, settingsMenu.firstChild);
+
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             settingsMenu.classList.toggle('open');
@@ -296,25 +292,8 @@ const UI = (() => {
         document.addEventListener('click', (e) => {
             if (!wrap.contains(e.target)) settingsMenu.classList.remove('open');
         });
-        settingsMenu.querySelector('#settings-cursor-share').addEventListener('change', (e) => {
-            if (typeof window.LiveCursors !== 'undefined') {
-                window.LiveCursors.setPreference(e.target.checked);
-            } else {
-                try { localStorage.setItem('doni_cursor_share_pref', e.target.checked ? '1' : '0'); } catch (err) {}
-            }
-            toast(e.target.checked ? 'Cursor sharing enabled' : 'Cursor sharing disabled', 'info');
-        });
 
-        // PWA install
-        const installBtn = document.createElement('button');
-        installBtn.id = 'pwa-install-btn';
-        installBtn.className = 'icon-btn';
-        installBtn.title = 'Install app';
-        installBtn.setAttribute('aria-label', 'Install app');
-        installBtn.textContent = '⬇';
-        installBtn.addEventListener('click', promptInstall);
-
-        wrap.append(themeBtn, accentBtn, soundBtn, lockBtn, notifyBtn, settingsBtn, installBtn, menu, settingsMenu);
+        wrap.append(themeBtn, settingsBtn, settingsMenu);
 
         const status = header.querySelector('.status');
         if (status && status.parentElement === header) header.insertBefore(wrap, status.nextSibling);

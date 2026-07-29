@@ -18,7 +18,7 @@
 </head>
 <body>
     <header>
-        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.5</span></a>
+        <a href="index.html" class="logo"><span>DONI</span><span class="logo-badge">v3.5</span><span class="logo-badge logo-badge-portfolio">Portfolio</span></a>
         <nav class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="projects.html">Projects</a>
@@ -116,6 +116,7 @@
     <script src="security.js"></script>
     <script src="features.js"></script>
     <script src="app.js"></script>
+    <script src="accounts.js"></script>
     <script src="enhancements.js"></script>
     <script src="visitor-tracker.js"></script>
     <script src="soundscape.js"></script>
@@ -123,8 +124,25 @@
 
     <script>
         // app.js (loaded above) already calls firebase.initializeApp() for the
-        // one real project, aboutme-8a339. Reuse that default app here instead
-        // of pointing at a separate project that doesn't exist.
+        // one real project, aboutme-8a339 — but it does so 100ms after
+        // DOMContentLoaded, while this script runs synchronously during page
+        // parse, well before that. Calling firebase.firestore() immediately
+        // here throws "No Firebase App '[DEFAULT]' has been created", which
+        // silently killed every line after it — including every event
+        // listener in this file. Wait for Firebase to actually be ready
+        // before running any of this.
+        (function waitForFirebaseThenInitChat(tries) {
+            tries = tries || 0;
+            const ready = typeof firebaseReady !== 'undefined' && firebaseReady;
+            if (!ready) {
+                if (tries > 50) { console.error('[Chat] Firebase never became ready — chat cannot start.'); return; }
+                setTimeout(() => waitForFirebaseThenInitChat(tries + 1), 100);
+                return;
+            }
+            initChat();
+        })();
+
+        function initChat() {
         const db = firebase.firestore();
         const messagesRef = db.collection('chatMessages');
         const pollsRef = db.collection('polls');
@@ -139,6 +157,24 @@
         const typingEl = document.getElementById('typingIndicator');
         const botToggle = document.getElementById('bot-toggle');
         const pollsContainer = document.getElementById('polls-container');
+
+        // Auto-fill from a signed-in account if present, and keep the name
+        // persisted so live-cursors.js can show it on your cursor too.
+        (function initNameField() {
+            try {
+                const saved = localStorage.getItem('doni_chat_name');
+                if (saved && !nameEl.value) nameEl.value = saved;
+            } catch (e) {}
+            if (typeof Accounts !== 'undefined') {
+                const user = Accounts.getCurrentUser();
+                const profile = Accounts.getCurrentProfile();
+                const accountName = profile?.displayName || user?.displayName;
+                if (accountName && !nameEl.value) nameEl.value = accountName;
+            }
+            nameEl.addEventListener('input', () => {
+                try { localStorage.setItem('doni_chat_name', nameEl.value.trim()); } catch (e) {}
+            });
+        })();
 
         const themeColors = {
             green: getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim() || '#22c55e',
@@ -364,19 +400,31 @@
             if (chatMsgCount >= 10 && window.unlockBadge) window.unlockBadge('chatter');
 
             try {
-                await messagesRef.add({
+                const account = (typeof Accounts !== 'undefined') ? Accounts.getCurrentUser() : null;
+                const payload = {
                     name: name.substring(0, 20),
                     text: text.substring(0, 500),
                     theme: myTheme,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     reactions: {},
                     sessionId: mySessionId
-                });
+                };
+                if (account) payload.uid = account.uid;
+                await messagesRef.add(payload);
+                if (account) {
+                    db.collection('users').doc(account.uid)
+                        .set({ messageCount: firebase.firestore.FieldValue.increment(1) }, { merge: true })
+                        .catch(() => {});
+                }
                 inputEl.value = '';
                 botRespond(text);
             } catch (e) {
                 console.error('Send error:', e);
-                alert('Failed to send: ' + e.message);
+                if (e && e.code === 'permission-denied' && (typeof Accounts !== 'undefined') && Accounts.getCurrentUser() && !Accounts.isVerified()) {
+                    alert('You\'ve hit the 10-message limit for unverified accounts. Check your email to verify and unlock unlimited messages.');
+                } else {
+                    alert('Failed to send: ' + e.message);
+                }
             }
         }
 
@@ -435,6 +483,7 @@
         }
         updateVisitorCount();
         setInterval(updateVisitorCount, 10000);
+        } // end initChat()
     </script>
     <script src="app-v35.js"></script>
     <script src="live-cursors.js"></script>

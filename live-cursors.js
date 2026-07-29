@@ -130,15 +130,19 @@
         }
 
         function onMove(e) {
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
+            // Page-relative coordinates (not viewport-relative) so the dot
+            // tracks correctly regardless of scroll position on either end.
+            const x = e.pageX / document.documentElement.scrollWidth;
+            const y = e.pageY / document.documentElement.scrollHeight;
             sendPosition(x, y);
         }
         document.addEventListener('mousemove', onMove);
 
-        window.addEventListener('pagehide', () => {
+        function cleanup() {
             ref.delete().catch(() => {});
-        });
+        }
+        window.addEventListener('pagehide', cleanup);
+        window.addEventListener('beforeunload', cleanup);
 
         // Listen for other cursors on this same page. Filters only on `page`
         // (single field, no composite index needed) and checks `cursor`
@@ -162,6 +166,14 @@
     }
 
     function upsertCursor(id, data) {
+        // Reject stale docs outright — an orphaned doc from a refresh/crash
+        // that skipped cleanup would otherwise render as if it just moved.
+        const writeTime = data.t && data.t.toMillis ? data.t.toMillis() : 0;
+        if (writeTime && (Date.now() - writeTime > STALE_MS)) {
+            removeCursor(id);
+            return;
+        }
+
         let entry = otherCursors.get(id);
         if (!entry) {
             const el = document.createElement('div');
@@ -173,8 +185,8 @@
             otherCursors.set(id, entry);
         }
         if (typeof data.x === 'number' && typeof data.y === 'number') {
-            entry.el.style.left = (data.x * window.innerWidth) + 'px';
-            entry.el.style.top = (data.y * window.innerHeight) + 'px';
+            entry.el.style.left = (data.x * document.documentElement.scrollWidth) + 'px';
+            entry.el.style.top = (data.y * document.documentElement.scrollHeight) + 'px';
         }
         clearTimeout(entry.expireTimer);
         entry.expireTimer = setTimeout(() => removeCursor(id), STALE_MS);

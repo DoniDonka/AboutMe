@@ -24,9 +24,10 @@ let firebaseReady = false;
 function initFirebase() {
     try {
         if (typeof firebase !== 'undefined') {
-            // Guard against re-initializing the default app — pages like chat.html
-            // initialize their own (separate) Firebase project inline and must run
-            // first; if a default app already exists, just reuse it.
+            // Guard against re-initializing the default app in case this ever
+            // runs twice. chat.html now waits for and reuses this same app
+            // instead of creating its own (that used to point at a project
+            // that didn't exist — fixed).
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }

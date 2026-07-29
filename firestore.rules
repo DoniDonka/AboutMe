@@ -2,6 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // User accounts — each user manages their own profile. The `verified`
+    // field mirrors Firebase Auth's real emailVerified flag (synced by
+    // client code on sign-in) but a user cannot set verified:true directly
+    // themselves — Firestore rules can't call Auth APIs, so this checks that
+    // the incoming value matches what's already stored unless it's the
+    // account's own first-time creation (verified defaults to false there).
+    match /users/{uid} {
+      allow read: if request.auth != null &&
+                    (request.auth.uid == uid || request.auth.token.email == 'doni@admin.com');
+      allow create: if request.auth != null && request.auth.uid == uid &&
+                    request.resource.data.verified == false;
+      allow update: if request.auth != null && request.auth.uid == uid &&
+                    (request.resource.data.verified == resource.data.verified ||
+                     request.resource.data.verified == request.auth.token.email_verified);
+    }
+
     // Admin-only dashboard settings (site title/desc/status/tags/updates note)
     match /dashboard/settings {
       allow read: if true;
@@ -26,9 +42,18 @@ service cloud.firestore {
                     && request.resource.data.name.size() <= 20
                     && request.resource.data.sessionId is string
                     && !exists(/databases/$(database)/documents/bannedSessions/$(request.resource.data.sessionId))
-                    && !exists(/databases/$(database)/documents/mutedSessions/$(request.resource.data.sessionId));
-      allow update: if request.resource.data.diff(resource.data).affectedKeys()
-                      .hasOnly(['reactions']);
+                    && !exists(/databases/$(database)/documents/mutedSessions/$(request.resource.data.sessionId))
+                    // Anonymous messages (no uid) are unrestricted, same as before accounts existed.
+                    // Signed-in-but-unverified accounts are capped at 10 messages total.
+                    // Signed-in-verified accounts are unrestricted.
+                    && (!('uid' in request.resource.data)
+                        || request.auth.token.email_verified == true
+                        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.messageCount < 10);
+      // Reactions require a verified account (or anonymous — reactions never carried
+      // a verification requirement for anonymous visitors, only signed-in-unverified
+      // accounts are blocked here since they explicitly opted into an account).
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+                    && (request.auth == null || request.auth.token.email_verified == true);
       allow delete: if request.auth != null && request.auth.token.email == 'doni@admin.com';
     }
 
