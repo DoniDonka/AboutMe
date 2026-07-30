@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Achievements | DONI | DEV</title>
+    <title>Showcase | DONI | DEV</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
-    <meta name="description" content="Unlock achievements by exploring the site.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎨</text></svg>">
+    <meta name="description" content="Builds, videos, and photos — a look at what I've made.">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0a0a0a">
     <script>(function(){try{var t=localStorage.getItem('doni_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');var a=localStorage.getItem('doni_accent')||'green';document.documentElement.setAttribute('data-accent',a);if(localStorage.getItem('doni_site_locked')==='1')document.documentElement.classList.add('pre-locked');}catch(e){}})();</script>
-    <meta property="og:title" content="Achievements | DONI | DEV">
-    <meta property="og:description" content="Unlock achievements by exploring the site.">
+    <meta property="og:title" content="Showcase | DONI | DEV">
+    <meta property="og:description" content="Builds, videos, and photos — a look at what I've made.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="icons/icon-512.png">
     <meta name="twitter:card" content="summary">
@@ -30,22 +30,32 @@
             <a href="resume.html">Resume</a>
             <a href="chat.html">Chat</a>
             <a href="tools.html">Tools</a>
-            <a href="badges.html" class="active">Badges</a>
+            <a href="showcase.html" class="active">Showcase</a>
+            <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
         <div class="status" id="status-btn"><div class="dot" id="status-dot"></div> <span id="status-text">Active</span></div>
-        <button id="soundToggle" class="sound-toggle" title="Toggle sound">🔇</button>
     </header>
 
     <div class="page-hero">
-        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Achievements</p>
-        <h1>🏆 Badges</h1>
-        <p>Explore the site to unlock them all. <span id="badge-count" style="color: var(--accent-green); font-weight: 700;">0/15</span></p>
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; color: var(--accent-green); margin-bottom: 12px;">Portfolio</p>
+        <h1>🎨 Showcase</h1>
+        <p>Builds, videos, and photos — a running collection of things I've made, played, and shipped.</p>
     </div>
 
     <div class="grid-container">
         <div class="bento-card span-3">
-            <div id="badges-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;"></div>
+            <div class="showcase-filters">
+                <button class="showcase-filter-btn active" data-filter="all">All</button>
+                <button class="showcase-filter-btn" data-filter="build">🔨 Builds</button>
+                <button class="showcase-filter-btn" data-filter="video">▶️ Videos</button>
+                <button class="showcase-filter-btn" data-filter="photo">📷 Photos</button>
+            </div>
+            <div id="showcase-grid" class="showcase-grid">
+                <div class="skeleton" style="height:220px;border-radius:12px;"></div>
+                <div class="skeleton" style="height:220px;border-radius:12px;"></div>
+                <div class="skeleton" style="height:220px;border-radius:12px;"></div>
+            </div>
         </div>
     </div>
 
@@ -60,9 +70,7 @@
             <a href="guestbook.html">Guestbook</a>
             <a href="chat.html">Chat</a>
             <a href="tools.html">Tools</a>
-            <a href="showcase.html">Showcase</a>
             <a href="badges.html">Badges</a>
-            <a href="tools.html">Tools</a>
             <a href="stats.html">Stats</a>
             <a href="changelog.html">Changelog</a>
         </div>
@@ -85,5 +93,32 @@
     <script src="live-cursors.js"></script>
     <script src="commands-v2.js"></script>
     <script src="site-search.js"></script>
+    <script src="content-editor.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('.showcase-filter-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const filter = btn.dataset.filter;
+                    const waitFn = (cb, tries) => {
+                        tries = tries || 0;
+                        if (typeof firebaseReady !== 'undefined' && firebaseReady && typeof db !== 'undefined' && db) { cb(db); return; }
+                        if (tries > 30) return;
+                        setTimeout(() => waitFn(cb, tries + 1), 200);
+                    };
+                    waitFn((database) => {
+                        if (typeof ContentEditor !== 'undefined') {
+                            ContentEditor.renderShowcaseItems(database, 'showcase-grid', {
+                                filterType: filter === 'all' ? null : filter,
+                                emptyText: 'Nothing here yet — check back soon.'
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

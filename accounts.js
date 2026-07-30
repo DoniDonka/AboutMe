@@ -80,6 +80,11 @@
 
                 <div class="account-panel account-panel-hidden" id="account-panel-profile">
                     <div class="account-logo">DONI</div>
+                    <div class="account-avatar-wrap">
+                        <img id="account-avatar-preview" class="account-avatar" src="" alt="">
+                        <button class="account-avatar-edit" id="account-avatar-edit-btn" title="Change avatar">📷</button>
+                        <input type="file" id="account-avatar-file" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;">
+                    </div>
                     <h2 class="account-title" id="account-profile-welcome">Welcome!</h2>
                     <p class="account-sub" id="account-profile-email"></p>
                     <div class="account-verify-banner" id="account-verify-banner" style="display:none;">
@@ -217,6 +222,88 @@
                 catch (err) { if (typeof UI !== 'undefined') UI.toast('Could not resend — try again shortly', 'error'); }
             }
         });
+
+        document.getElementById('account-avatar-edit-btn').addEventListener('click', () => {
+            document.getElementById('account-avatar-file').click();
+        });
+        document.getElementById('account-avatar-file').addEventListener('change', handleAvatarSelect);
+    }
+
+    const MAX_AVATAR_BYTES = 3 * 1024 * 1024; // 3MB, matches the Worker's guard
+    const WORKER_URL = 'https://aboutme.donidonka511.workers.dev';
+
+    async function handleAvatarSelect(e) {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = ''; // allow re-selecting the same file later
+        if (!file || !currentUser) return;
+
+        if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) {
+            if (typeof UI !== 'undefined') UI.toast('Please choose a PNG, JPEG, GIF, or WebP image', 'error');
+            return;
+        }
+        if (file.size > MAX_AVATAR_BYTES) {
+            if (typeof UI !== 'undefined') UI.toast('Image is too large — please use something under 3MB', 'error');
+            return;
+        }
+
+        const editBtn = document.getElementById('account-avatar-edit-btn');
+        const originalIcon = editBtn.textContent;
+        editBtn.textContent = '⏳';
+        editBtn.disabled = true;
+
+        try {
+            const base64 = await fileToBase64(file);
+            const token = await currentUser.getIdToken();
+            const res = await fetch(WORKER_URL + '/avatar-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ image: base64 })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.url) throw new Error(data.error || 'Upload failed');
+
+            await db.collection('users').doc(currentUser.uid).set({ avatarUrl: data.url }, { merge: true });
+            currentProfile = currentProfile || {};
+            currentProfile.avatarUrl = data.url;
+            renderAvatarPreview();
+            if (typeof UI !== 'undefined') UI.toast('Avatar updated!', 'success');
+        } catch (err) {
+            if (typeof UI !== 'undefined') UI.toast('Avatar upload failed: ' + err.message, 'error');
+        } finally {
+            editBtn.textContent = originalIcon;
+            editBtn.disabled = false;
+        }
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // FileReader gives a data URL like "data:image/png;base64,AAAA..."
+                // — Imgur's base64 upload type wants just the raw base64 part.
+                const result = reader.result;
+                const commaIdx = result.indexOf(',');
+                resolve(commaIdx >= 0 ? result.slice(commaIdx + 1) : result);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function renderAvatarPreview() {
+        const img = document.getElementById('account-avatar-preview');
+        if (!img) return;
+        const url = currentProfile?.avatarUrl;
+        // Fall back to a generated placeholder (first letter, accent-colored)
+        // rather than a broken image icon if no avatar has been set yet.
+        if (url) {
+            img.src = url;
+        } else {
+            const name = currentProfile?.displayName || currentUser?.displayName || '?';
+            img.src = 'data:image/svg+xml,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#22c55e"/><text x="40" y="52" font-size="34" font-family="sans-serif" font-weight="800" fill="#000" text-anchor="middle">${name[0].toUpperCase()}</text></svg>`
+            );
+        }
     }
 
     function updateProfilePanel() {
@@ -226,6 +313,7 @@
         document.getElementById('account-profile-email').textContent = currentUser.email || '';
         const banner = document.getElementById('account-verify-banner');
         if (banner) banner.style.display = currentUser.emailVerified ? 'none' : 'block';
+        renderAvatarPreview();
     }
 
     // ---------- Auth state ----------
@@ -289,6 +377,14 @@
         close: closeModal,
         getCurrentUser: () => currentUser,
         getCurrentProfile: () => currentProfile,
-        isVerified: () => !!(currentUser && currentUser.emailVerified)
+        isVerified: () => !!(currentUser && currentUser.emailVerified),
+        refreshProfile: async () => {
+            if (!currentUser || typeof db === 'undefined' || !db) return currentProfile;
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                currentProfile = doc.exists ? doc.data() : null;
+            } catch (e) { /* keep the stale cache rather than wipe it on a transient error */ }
+            return currentProfile;
+        }
     };
 })();

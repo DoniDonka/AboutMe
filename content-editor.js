@@ -51,6 +51,61 @@
             .catch(err => console.warn('[ContentEditor] blog fetch failed:', err));
     }
 
+    function youtubeEmbedUrl(link) {
+        if (!link) return null;
+        const m = link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+        return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+    }
+
+    function renderShowcaseItems(database, containerId, opts) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        opts = opts || {};
+        const limit = opts.limit || 50;
+        const filterType = opts.filterType || null; // 'build' | 'video' | 'photo' | null (all)
+
+        database.collection('posts').orderBy('timestamp', 'desc').limit(50).get()
+            .then(snap => {
+                let items = snap.docs.filter(d => ['build', 'video', 'photo'].includes(d.data().type));
+                if (filterType) items = items.filter(d => d.data().type === filterType);
+                items = items.slice(0, limit);
+
+                // The homepage strip has a wrapping section that starts hidden —
+                // only reveal it once there's actual content to show.
+                const homeSection = document.getElementById('home-showcase-section');
+                if (homeSection) homeSection.style.display = items.length ? 'block' : 'none';
+
+                if (!items.length) {
+                    container.innerHTML = opts.emptyText
+                        ? `<div class="showcase-empty">${escapeHtml(opts.emptyText)}</div>` : '';
+                    return;
+                }
+
+                container.innerHTML = items.map(doc => {
+                    const p = doc.data();
+                    const embedUrl = p.type === 'video' ? youtubeEmbedUrl(p.link) : null;
+                    const media = embedUrl
+                        ? `<div class="showcase-video-wrap"><iframe src="${embedUrl}" loading="lazy" allowfullscreen frameborder="0"></iframe></div>`
+                        : p.imageUrl
+                        ? `<img src="${escapeHtml(p.imageUrl)}" alt="${escapeHtml(p.title || '')}" class="showcase-img" loading="lazy">`
+                        : '';
+                    const typeLabel = { build: '🔨 Build', video: '▶️ Video', photo: '📷 Photo' }[p.type] || '';
+                    const linkHtml = (p.link && !embedUrl)
+                        ? `<a href="${escapeHtml(p.link)}" target="_blank" rel="noopener" class="showcase-link">View →</a>` : '';
+                    return `<div class="showcase-card">
+                        ${media}
+                        <div class="showcase-card-body">
+                            <span class="tag">${typeLabel}</span>
+                            <h3>${escapeHtml(p.title || '')}</h3>
+                            ${p.body ? `<p>${escapeHtml(p.body)}</p>` : ''}
+                            ${linkHtml}
+                        </div>
+                    </div>`;
+                }).join('');
+            })
+            .catch(err => console.warn('[ContentEditor] showcase fetch failed:', err));
+    }
+
     function renderChangelogEntries(database) {
         const container = document.getElementById('dynamic-changelog-entries');
         if (!container) return;
@@ -84,15 +139,28 @@
         const tagsEl = document.getElementById('cms-post-tags');
         const versionRow = document.getElementById('cms-version-row');
         const versionEl = document.getElementById('cms-post-version');
+        const imageRow = document.getElementById('cms-image-row');
+        const imageEl = document.getElementById('cms-post-image');
+        const linkRow = document.getElementById('cms-link-row');
+        const linkEl = document.getElementById('cms-post-link');
+        const bodyLabel = document.getElementById('cms-body-label');
         const publishBtn = document.getElementById('cms-post-publish');
         const listEl = document.getElementById('cms-post-list');
         if (!publishBtn) return; // not on this page
 
+        const SHOWCASE_TYPES = ['build', 'video', 'photo'];
+
         function toggleFields() {
-            const isChangelog = typeEl.value === 'changelog';
+            const type = typeEl.value;
+            const isChangelog = type === 'changelog';
+            const isShowcase = SHOWCASE_TYPES.includes(type);
             if (versionRow) versionRow.style.display = isChangelog ? 'block' : 'none';
+            if (imageRow) imageRow.style.display = isShowcase ? 'block' : 'none';
+            if (linkRow) linkRow.style.display = isShowcase ? 'block' : 'none';
+            if (bodyLabel) bodyLabel.textContent = isChangelog ? 'Changes (one per line)' : 'Description';
             if (bodyEl) bodyEl.placeholder = isChangelog
                 ? 'One change per line, e.g.\nAdded dark mode toggle\nFixed chat crash on load'
+                : isShowcase ? 'Short description of this build/video/photo...'
                 : 'Post body...';
         }
         if (typeEl) { typeEl.addEventListener('change', toggleFields); toggleFields(); }
@@ -101,8 +169,22 @@
             const title = (titleEl?.value || '').trim();
             const body = (bodyEl?.value || '').trim();
             const type = typeEl?.value || 'blog';
-            if (!body || (type === 'blog' && !title)) {
-                if (typeof UI !== 'undefined') UI.toast('Fill in the required fields', 'info');
+            const isShowcase = SHOWCASE_TYPES.includes(type);
+
+            if (type === 'blog' && (!title || !body)) {
+                if (typeof UI !== 'undefined') UI.toast('Blog posts need a title and body', 'info');
+                return;
+            }
+            if (type === 'changelog' && !body) {
+                if (typeof UI !== 'undefined') UI.toast('Add at least one change (one per line)', 'info');
+                return;
+            }
+            if (isShowcase && !title) {
+                if (typeof UI !== 'undefined') UI.toast('Showcase items need a title', 'info');
+                return;
+            }
+            if (isShowcase && type !== 'video' && !imageEl?.value?.trim()) {
+                if (typeof UI !== 'undefined') UI.toast('Showcase builds/photos need an image URL', 'info');
                 return;
             }
             waitForDb((database) => {
@@ -112,13 +194,34 @@
                     body,
                     tags: tagsEl && tagsEl.value ? tagsEl.value.split(',').map(t => t.trim()).filter(Boolean) : [],
                     version: type === 'changelog' ? (versionEl?.value || '').trim() : null,
+                    imageUrl: isShowcase ? (imageEl?.value?.trim() || null) : null,
+                    link: isShowcase ? (linkEl?.value?.trim() || null) : null,
                     badge: 'Update',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 database.collection('posts').add(payload)
-                    .then(() => {
+                    .then(async () => {
                         if (typeof UI !== 'undefined') UI.toast('Published!', 'success');
+                        if (type === 'blog') {
+                            try {
+                                const adminAuth = firebase.auth().currentUser;
+                                const token = adminAuth ? await adminAuth.getIdToken() : null;
+                                if (token) {
+                                    fetch('https://aboutme.donidonka511.workers.dev/broadcast-notification', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                                        body: JSON.stringify({
+                                            category: 'blogPosts',
+                                            title: 'New blog post',
+                                            body: title,
+                                            url: 'blog.html'
+                                        })
+                                    }).catch(() => {}); // best effort — don't block the publish flow on this
+                                }
+                            } catch (e) { /* best effort */ }
+                        }
                         titleEl.value = ''; bodyEl.value = ''; if (tagsEl) tagsEl.value = ''; if (versionEl) versionEl.value = '';
+                        if (imageEl) imageEl.value = ''; if (linkEl) linkEl.value = '';
                         loadPostList(database);
                     })
                     .catch(err => { if (typeof UI !== 'undefined') UI.toast('Publish failed: ' + err.message, 'error'); });
@@ -162,9 +265,15 @@
         waitForDb((database) => {
             renderBlogPosts(database);
             renderChangelogEntries(database);
+            if (document.getElementById('showcase-grid')) {
+                renderShowcaseItems(database, 'showcase-grid', { emptyText: 'Nothing added yet — check back soon.' });
+            }
+            if (document.getElementById('home-showcase-strip')) {
+                renderShowcaseItems(database, 'home-showcase-strip', { limit: 4 });
+            }
         });
         initAdminPostEditor();
     });
 
-    window.ContentEditor = { deletePost };
+    window.ContentEditor = { deletePost, renderShowcaseItems };
 })();

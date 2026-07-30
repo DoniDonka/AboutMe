@@ -46,6 +46,7 @@
             <a href="resume.html">Resume</a>
             <a href="chat.html">Chat</a>
             <a href="tools.html">Tools</a>
+            <a href="showcase.html">Showcase</a>
             <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
@@ -70,6 +71,15 @@
                 <a href="links.html" class="custom-btn secondary">Socials</a>
             </div>
         </div>
+    </div>
+
+    <!-- Showcase preview strip — only appears once content has been added via the admin Showcase tab -->
+    <div class="home-showcase-section" id="home-showcase-section" style="display:none;">
+        <div class="home-showcase-header">
+            <h2>Featuring my projects</h2>
+            <a href="showcase.html" class="home-showcase-viewall">View all →</a>
+        </div>
+        <div id="home-showcase-strip" class="home-showcase-strip"></div>
     </div>
 
     <!-- Quote Rotator -->
@@ -422,6 +432,7 @@
             <a href="guestbook.html">Guestbook</a>
             <a href="chat.html">Chat</a>
             <a href="tools.html">Tools</a>
+            <a href="showcase.html">Showcase</a>
             <a href="badges.html">Badges</a>
             <a href="stats.html">Stats</a>
             <a href="changelog.html">Changelog</a>
@@ -494,7 +505,7 @@
                     <button class="admin-tab-btn active" data-atab="content">Content</button>
                     <button class="admin-tab-btn" data-atab="appearance">Appearance</button>
                     <button class="admin-tab-btn" data-atab="tags">Tags</button>
-                    <button class="admin-tab-btn" data-atab="posts">Posts</button>
+                    <button class="admin-tab-btn" data-atab="posts">Showcase</button>
                     <button class="admin-tab-btn" data-atab="guestbook">Guestbook</button>
                     <button class="admin-tab-btn" data-atab="messages">Messages</button>
                     <button class="admin-tab-btn" data-atab="live">Live</button>
@@ -566,13 +577,16 @@
                     <div class="admin-list" id="admin-guestbook-list"></div>
                 </div>
 
-                <!-- Posts tab (blog + changelog CMS) -->
+                <!-- Posts tab (blog, changelog, and showcase addables CMS) -->
                 <div class="admin-tab-pane" id="atab-posts">
                     <div>
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Post Type</label>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Content Type</label>
                         <select id="cms-post-type" class="custom-input" style="background:var(--input-bg); color:var(--text-main);">
                             <option value="blog">Blog Post</option>
                             <option value="changelog">Changelog Entry</option>
+                            <option value="build">Showcase: Build</option>
+                            <option value="video">Showcase: Video</option>
+                            <option value="photo">Showcase: Photo</option>
                         </select>
                     </div>
                     <div id="cms-version-row" style="display:none;">
@@ -583,8 +597,16 @@
                         <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Title</label>
                         <input type="text" id="cms-post-title" class="custom-input" placeholder="Post title (blog only)">
                     </div>
+                    <div id="cms-image-row" style="display:none;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Image URL</label>
+                        <input type="text" id="cms-post-image" class="custom-input" placeholder="https://i.imgur.com/... or any image URL">
+                    </div>
+                    <div id="cms-link-row" style="display:none;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Link (optional)</label>
+                        <input type="text" id="cms-post-link" class="custom-input" placeholder="YouTube URL, Roblox link, etc.">
+                    </div>
                     <div>
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Body</label>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;" id="cms-body-label">Body</label>
                         <textarea id="cms-post-body" class="custom-input" rows="4" placeholder="Post body..."></textarea>
                     </div>
                     <div>
@@ -595,7 +617,7 @@
                         <button id="cms-post-publish" class="custom-btn green">Publish</button>
                     </div>
                     <div>
-                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin: 12px 0 6px;">Published Posts</label>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); display: block; margin: 12px 0 6px;">Published Content</label>
                         <div class="admin-list" id="cms-post-list"><div class="admin-list-empty">Loading…</div></div>
                     </div>
                 </div>
@@ -668,6 +690,7 @@
     <script src="features.js"></script>
     <script src="app.js"></script>
     <script src="accounts.js"></script>
+    <script src="push-notifications.js"></script>
     <script src="enhancements.js"></script>
     <script src="visitor-tracker.js"></script>
     <script src="soundscape.js"></script>

@@ -30,6 +30,7 @@
             <a href="resume.html">Resume</a>
             <a href="chat.html" class="active">Chat</a>
             <a href="tools.html">Tools</a>
+            <a href="showcase.html">Showcase</a>
             <a href="badges.html">Badges</a>
         </nav>
         <div class="time-display" id="time-display">Calculating time...</div>
@@ -56,6 +57,8 @@
                     </label>
                 </div>
             </div>
+
+            <div id="chatVerifyBanner" style="display:none; background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.25); border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:0.8rem; color:#fbbf24; text-align:center;"></div>
 
             <div id="chatMessages" style="height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
                 <div class="skeleton" style="width:55%;height:44px;border-radius:10px;align-self:flex-start;"></div>
@@ -103,6 +106,7 @@
             <a href="guestbook.html">Guestbook</a>
             <a href="chat.html">Chat</a>
             <a href="tools.html">Tools</a>
+            <a href="showcase.html">Showcase</a>
             <a href="badges.html">Badges</a>
             <a href="stats.html">Stats</a>
             <a href="changelog.html">Changelog</a>
@@ -117,6 +121,7 @@
     <script src="features.js"></script>
     <script src="app.js"></script>
     <script src="accounts.js"></script>
+    <script src="push-notifications.js"></script>
     <script src="enhancements.js"></script>
     <script src="visitor-tracker.js"></script>
     <script src="soundscape.js"></script>
@@ -175,6 +180,34 @@
                 try { localStorage.setItem('doni_chat_name', nameEl.value.trim()); } catch (e) {}
             });
         })();
+
+        function updateVerifyBanner() {
+            const banner = document.getElementById('chatVerifyBanner');
+            if (!banner || typeof Accounts === 'undefined') return;
+            const user = Accounts.getCurrentUser();
+            if (!user) { banner.style.display = 'none'; return; } // anonymous — unrestricted, no banner needed
+            if (Accounts.isVerified()) { banner.style.display = 'none'; return; }
+
+            const profile = Accounts.getCurrentProfile();
+            const used = profile?.messageCount || 0;
+            const remaining = Math.max(0, 10 - used);
+            banner.style.display = 'block';
+            if (remaining <= 0) {
+                banner.innerHTML = `⚠️ You've used your 10 free messages. <a href="#" id="chatVerifyLink" style="color:#fbbf24;text-decoration:underline;">Verify your email</a> to keep chatting, or continue anonymously by clearing the name field.`;
+            } else {
+                banner.innerHTML = `⚠️ Unverified account: ${remaining} message${remaining === 1 ? '' : 's'} left, and reactions are disabled. <a href="#" id="chatVerifyLink" style="color:#fbbf24;text-decoration:underline;">Verify your email</a>.`;
+            }
+            const link = document.getElementById('chatVerifyLink');
+            if (link) link.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof Accounts !== 'undefined') Accounts.open();
+            });
+        }
+        updateVerifyBanner();
+        // Re-check whenever the account state changes (sign in/out, verify).
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().onAuthStateChanged(() => setTimeout(updateVerifyBanner, 400));
+        }
 
         const themeColors = {
             green: getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim() || '#22c55e',
@@ -273,6 +306,11 @@
 
             const reactBtn = div.querySelector('.react-btn');
             reactBtn.addEventListener('click', async () => {
+                if (typeof Accounts !== 'undefined' && Accounts.getCurrentUser() && !Accounts.isVerified()) {
+                    if (typeof UI !== 'undefined') UI.toast('Verify your email to react to messages', 'info');
+                    else alert('Verify your email to react to messages.');
+                    return;
+                }
                 try {
                     const doc = await messagesRef.doc(id).get();
                     const data = doc.data();
@@ -311,6 +349,17 @@
         }
 
         // ---------- Load Messages ----------
+        const REACTION_KEYWORDS = { lol: /\blol+\b/i, wow: /\bwow+\b/i, nice: /\bnice\b/i, rip: /\brip\b/i, gg: /\bgg\b/i };
+        let seenMessageIds = new Set();
+        let firstSnapshot = true;
+
+        function triggerKeywordSound(text) {
+            if (!window.DONI_SFX || !text) return;
+            for (const [key, re] of Object.entries(REACTION_KEYWORDS)) {
+                if (re.test(text)) { window.DONI_SFX[key](); return; } // one sound per message, first match wins
+            }
+        }
+
         messagesRef.orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
             chatBox.innerHTML = '';
             const msgs = [];
@@ -319,6 +368,21 @@
             chatBox.scrollTop = chatBox.scrollHeight;
             statusEl.textContent = '● Connected';
             statusEl.style.color = 'var(--accent-green)';
+
+            // Keyword reaction sounds — only for messages that are new since
+            // the last snapshot, so the initial 50-message load and re-renders
+            // of the same messages never trigger a wall of sound.
+            if (firstSnapshot) {
+                msgs.forEach(m => seenMessageIds.add(m.id));
+                firstSnapshot = false;
+            } else {
+                msgs.forEach(m => {
+                    if (!seenMessageIds.has(m.id)) {
+                        seenMessageIds.add(m.id);
+                        triggerKeywordSound(m.text);
+                    }
+                });
+            }
         }, err => {
             statusEl.textContent = '● Offline';
             statusEl.style.color = '#ef4444';
@@ -415,6 +479,9 @@
                     db.collection('users').doc(account.uid)
                         .set({ messageCount: firebase.firestore.FieldValue.increment(1) }, { merge: true })
                         .catch(() => {});
+                    if (typeof Accounts !== 'undefined') {
+                        Accounts.refreshProfile().then(updateVerifyBanner);
+                    }
                 }
                 inputEl.value = '';
                 botRespond(text);

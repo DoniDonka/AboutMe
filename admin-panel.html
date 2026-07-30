@@ -159,6 +159,11 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminIdToken },
                     body: JSON.stringify({ text: text })
                 });
+                fetch('https://aboutme.donidonka511.workers.dev/broadcast-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminIdToken },
+                    body: JSON.stringify({ category: 'announcements', title: 'Announcement', body: text, url: 'index.html' })
+                }).catch(() => {}); // best effort — announcement banner already posted regardless
                 alert('Announcement posted!');
             } catch (e) { alert('Failed to post.'); }
         }

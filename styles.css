@@ -2850,6 +2850,32 @@ html.time-warp body {
     color: var(--accent, #22c55e); margin-bottom: 18px;
     text-shadow: 0 0 20px rgba(var(--accent-rgb, 34,197,94), 0.5);
 }
+
+.account-avatar-wrap {
+    position: relative;
+    width: 80px; height: 80px;
+    margin-bottom: 16px;
+}
+.account-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 34,197,94), 0.2);
+}
+.account-avatar-edit {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent, #22c55e);
+    border: 2px solid #000;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s ease;
+}
+.account-avatar-edit:hover { transform: scale(1.08); }
+.account-avatar-edit:disabled { opacity: 0.6; cursor: wait; }
+
 .account-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
 .account-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 22px; line-height: 1.5; }
 
@@ -2913,5 +2939,54 @@ html.time-warp body {
 }
 @media (prefers-reduced-motion: reduce) {
     .notfound-mascot { animation: none; }
+}
+
+/* ---- Showcase page ---- */
+.showcase-filters {
+    display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.showcase-filter-btn {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
+    color: var(--text-muted); padding: 8px 16px; border-radius: 20px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease;
+}
+.showcase-filter-btn:hover { border-color: rgba(var(--accent-rgb, 34,197,94), 0.4); color: var(--text-main); }
+.showcase-filter-btn.active {
+    background: var(--accent, #22c55e); border-color: var(--accent, #22c55e); color: #000;
+}
+.showcase-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;
+}
+.showcase-card {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);
+    border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+.showcase-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+.showcase-img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.showcase-video-wrap { position: relative; width: 100%; padding-top: 56.25%; }
+.showcase-video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.showcase-card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.showcase-card-body h3 { font-size: 1rem; }
+.showcase-card-body p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+.showcase-link { color: var(--accent, #22c55e); font-size: 0.8rem; font-weight: 600; text-decoration: none; }
+.showcase-link:hover { text-decoration: underline; }
+.showcase-empty { text-align: center; color: var(--text-muted); padding: 40px; grid-column: 1 / -1; }
+
+/* ---- Homepage showcase preview strip ---- */
+.home-showcase-section {
+    width: 100%; max-width: 1100px; margin-bottom: 24px;
+}
+.home-showcase-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+}
+.home-showcase-header h2 { font-size: 1.3rem; }
+.home-showcase-viewall {
+    color: var(--accent, #22c55e); font-size: 0.85rem; font-weight: 600; text-decoration: none;
+}
+.home-showcase-viewall:hover { text-decoration: underline; }
+.home-showcase-strip {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;
 }
 

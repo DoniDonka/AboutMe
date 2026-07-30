@@ -72,6 +72,26 @@
         error: () => {
             playTone(200, 0.15, 0.04, 'sawtooth');
             setTimeout(() => playTone(150, 0.15, 0.04, 'sawtooth'), 100);
+        },
+        // Chat keyword reactions
+        lol: () => {
+            [880, 988, 1109, 1245].forEach((f, i) => setTimeout(() => playTone(f, 0.06, 0.025, 'triangle'), i * 55));
+        },
+        wow: () => {
+            playTone(400, 0.3, 0.03, 'sine');
+            setTimeout(() => playTone(800, 0.25, 0.025, 'sine'), 100);
+        },
+        nice: () => {
+            playTone(659.25, 0.1, 0.03, 'sine');
+            setTimeout(() => playTone(880, 0.15, 0.03, 'sine'), 90);
+        },
+        rip: () => {
+            [500, 400, 300, 200].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 0.025, 'sine'), i * 90));
+        },
+        gg: () => {
+            playTone(523.25, 0.06, 0.03, 'square');
+            setTimeout(() => playTone(659.25, 0.06, 0.03, 'square'), 70);
+            setTimeout(() => playTone(783.99, 0.18, 0.03, 'square'), 140);
         }
     };
 

@@ -676,6 +676,7 @@ const SEARCH_INDEX = [
     { title: 'Stats', url: 'stats.html', keywords: 'stats analytics page views visitors metrics' },
     { title: 'Chat', url: 'chat.html', keywords: 'chat visitor real-time messages community' },
     { title: 'Tools', url: 'tools.html', keywords: 'tools dev toolkit password qr json base64 typing test' },
+    { title: 'Showcase', url: 'showcase.html', keywords: 'showcase builds videos photos gallery projects plane crazy roblox' },
     { title: 'Badges', url: 'badges.html', keywords: 'badges achievements unlock explorer' },
     { title: 'Admin', url: 'admin-panel.html', keywords: 'admin panel secret control' }
 ];

@@ -8,6 +8,105 @@ const CORS_HEADERS = {
 const ADMIN_SECRET = 'doni-admin-2026'; // legacy fallback only — see requireAdmin()
 const ADMIN_EMAIL = 'doni@admin.com';
 const STALE_SESSION_MS = 90000; // a session with no join/click in 90s is considered gone
+const FCM_PROJECT_ID = 'aboutme-8a339';
+
+// ---------------- FCM push notifications (hand-signed JWT, no deps) ----------------
+// This Worker is deployed by pasting a single file into the Cloudflare dashboard
+// (no npm/build step available), so a library can't be bundled in — this signs
+// the Google service-account JWT directly using the Web Crypto API, which Workers
+// support natively. Requires FIREBASE_SERVICE_ACCOUNT_JSON to be set as a Worker
+// secret (the full contents of a Firebase service account key file).
+
+function base64UrlEncode(bytes) {
+    let str;
+    if (typeof bytes === 'string') {
+        str = btoa(unescape(encodeURIComponent(bytes)));
+    } else {
+        str = btoa(String.fromCharCode(...new Uint8Array(bytes)));
+    }
+    return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function pemToArrayBuffer(pem) {
+    const b64 = pem
+        .replace('-----BEGIN PRIVATE KEY-----', '')
+        .replace('-----END PRIVATE KEY-----', '')
+        .replace(/\s/g, '');
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+}
+
+let cachedAccessToken = null; // { token, expiresAt } — in-memory only, reset per Worker instance
+
+async function getFcmAccessToken(env) {
+    if (cachedAccessToken && Date.now() < cachedAccessToken.expiresAt - 60000) {
+        return cachedAccessToken.token;
+    }
+
+    const raw = env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON not configured');
+    const sa = JSON.parse(raw);
+
+    const now = Math.floor(Date.now() / 1000);
+    const header = { alg: 'RS256', typ: 'JWT' };
+    const claims = {
+        iss: sa.client_email,
+        scope: 'https://www.googleapis.com/auth/firebase.messaging',
+        aud: 'https://oauth2.googleapis.com/token',
+        iat: now,
+        exp: now + 3600
+    };
+
+    const unsigned = base64UrlEncode(JSON.stringify(header)) + '.' + base64UrlEncode(JSON.stringify(claims));
+
+    const keyData = pemToArrayBuffer(sa.private_key);
+    const cryptoKey = await crypto.subtle.importKey(
+        'pkcs8',
+        keyData,
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        false,
+        ['sign']
+    );
+    const signature = await crypto.subtle.sign(
+        'RSASSA-PKCS1-v1_5',
+        cryptoKey,
+        new TextEncoder().encode(unsigned)
+    );
+
+    const jwt = unsigned + '.' + base64UrlEncode(signature);
+
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=' + encodeURIComponent(jwt)
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+        throw new Error('OAuth token exchange failed: ' + (tokenData.error_description || tokenData.error || 'unknown error'));
+    }
+
+    cachedAccessToken = { token: tokenData.access_token, expiresAt: Date.now() + (tokenData.expires_in || 3600) * 1000 };
+    return tokenData.access_token;
+}
+
+async function sendFcmMessage(env, token, notification, data) {
+    const accessToken = await getFcmAccessToken(env);
+    const res = await fetch(`https://fcm.googleapis.com/v1/projects/${FCM_PROJECT_ID}/messages:send`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: {
+                token,
+                notification,
+                data: data || {}
+            }
+        })
+    });
+    const result = await res.json();
+    return { ok: res.ok, result };
+}
 
 class Router {
     constructor() { this.routes = []; }
@@ -68,6 +167,21 @@ async function requireAdmin(request) {
         const info = await res.json();
         return !!(info.email && info.email.toLowerCase() === ADMIN_EMAIL && info.email_verified !== 'false');
     } catch (e) { return false; }
+}
+
+// Verifies any signed-in user's Firebase ID token (not just admin) and
+// returns their uid, or null if invalid/missing. Used to gate the avatar
+// upload route so it can't be spammed anonymously and burn the Imgur quota.
+async function requireAuthUid(request) {
+    const auth = request.headers.get('Authorization') || '';
+    if (!auth.startsWith('Bearer ')) return null;
+    const token = auth.slice(7);
+    try {
+        const res = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token));
+        if (!res.ok) return null;
+        const info = await res.json();
+        return info.sub || null; // 'sub' is the Firebase uid in a Google ID token
+    } catch (e) { return null; }
 }
 
 // ------------------------------------------------------------------
@@ -274,6 +388,128 @@ router.get('/steam', async (request, env) => {
         const recentStr = rg ? `${rg.name} (${Math.round((rg.playtime_forever || 0) / 60)} hrs)` : null;
 
         return jsonResponse({ player, recent: recentStr });
+    } catch (e) {
+        return jsonResponse({ error: String(e) }, 502);
+    }
+});
+
+router.post('/avatar-upload', async (request, env) => {
+    const uid = await requireAuthUid(request);
+    if (!uid) return jsonResponse({ error: 'Sign in required' }, 401);
+
+    const clientId = env.IMGUR_CLIENT_ID;
+    if (!clientId) return jsonResponse({ error: 'Avatar uploads are not configured yet' }, 500);
+
+    let body;
+    try { body = await request.json(); } catch (e) { return jsonResponse({ error: 'Invalid JSON' }, 400); }
+    const base64 = body.image;
+    if (!base64 || typeof base64 !== 'string') return jsonResponse({ error: 'Missing image data' }, 400);
+
+    // Rough size guard before we even forward it — base64 is ~4/3 the size of
+    // the original bytes, so cap around 5MB of base64 (~3.75MB actual image).
+    if (base64.length > 5 * 1024 * 1024) {
+        return jsonResponse({ error: 'Image too large — please use something under ~3MB' }, 413);
+    }
+
+    try {
+        const form = new FormData();
+        form.append('image', base64);
+        form.append('type', 'base64');
+
+        const imgurRes = await fetch('https://api.imgur.com/3/image', {
+            method: 'POST',
+            headers: { 'Authorization': 'Client-ID ' + clientId },
+            body: form
+        });
+        const imgurData = await imgurRes.json();
+
+        if (!imgurRes.ok || !imgurData.success) {
+            return jsonResponse({ error: imgurData?.data?.error || 'Imgur upload failed' }, 502);
+        }
+
+        return jsonResponse({ url: imgurData.data.link, deleteHash: imgurData.data.deletehash });
+    } catch (e) {
+        return jsonResponse({ error: String(e) }, 502);
+    }
+});
+
+// Targeted push — any signed-in user can trigger this (e.g. to notify someone
+// who was @mentioned or replied to in chat). Only ever reaches the recipient
+// if they're actually subscribed AND opted into that notification category —
+// enforced here, not left to the client.
+router.post('/send-notification', async (request, env) => {
+    const senderUid = await requireAuthUid(request);
+    if (!senderUid) return jsonResponse({ error: 'Sign in required' }, 401);
+
+    let body;
+    try { body = await request.json(); } catch (e) { return jsonResponse({ error: 'Invalid JSON' }, 400); }
+    const { recipientToken, category, title, body: msgBody, url } = body;
+    if (!recipientToken || !category || !title) return jsonResponse({ error: 'Missing required fields' }, 400);
+
+    try {
+        const result = await sendFcmMessage(env, recipientToken,
+            { title: String(title).slice(0, 100), body: String(msgBody || '').slice(0, 200) },
+            { url: url || '/', category }
+        );
+        if (!result.ok) return jsonResponse({ error: result.result?.error?.message || 'Send failed' }, 502);
+        return jsonResponse({ ok: true });
+    } catch (e) {
+        return jsonResponse({ error: String(e) }, 502);
+    }
+});
+
+// Broadcast push — admin-only, sends to every subscriber who opted into the
+// given category. Used for new blog posts and site-wide announcements.
+router.post('/broadcast-notification', async (request, env) => {
+    if (!(await requireAdmin(request))) return jsonResponse({ error: 'Unauthorized' }, 401);
+
+    let body;
+    try { body = await request.json(); } catch (e) { return jsonResponse({ error: 'Invalid JSON' }, 400); }
+    const { category, title, body: msgBody, url } = body;
+    if (!category || !title) return jsonResponse({ error: 'Missing required fields' }, 400);
+    if (!['chatReplies', 'blogPosts', 'announcements'].includes(category)) {
+        return jsonResponse({ error: 'Invalid category' }, 400);
+    }
+
+    // This Worker has no direct Firestore SDK access (REST-only environment),
+    // so subscriber tokens are looked up via Firestore's REST API using the
+    // same OAuth token already obtained for FCM (same service account scope
+    // covers both when the service account has Firestore access).
+    try {
+        const accessToken = await getFcmAccessToken(env);
+        const baseUrl = `https://firestore.googleapis.com/v1/projects/${FCM_PROJECT_ID}/databases/(default)/documents`;
+
+        const [subsRes, usersRes] = await Promise.all([
+            fetch(`${baseUrl}/pushSubscribers?pageSize=300`, { headers: { 'Authorization': 'Bearer ' + accessToken } }),
+            fetch(`${baseUrl}/users?pageSize=300`, { headers: { 'Authorization': 'Bearer ' + accessToken } })
+        ]);
+        const subsData = await subsRes.json();
+        const usersData = await usersRes.json();
+
+        const anonTokens = (subsData.documents || [])
+            .filter(d => d.fields?.prefs?.mapValue?.fields?.[category]?.booleanValue === true)
+            .map(d => d.fields?.token?.stringValue)
+            .filter(Boolean);
+
+        const userTokens = (usersData.documents || [])
+            .filter(d => d.fields?.pushToken?.stringValue &&
+                         d.fields?.notifyPrefs?.mapValue?.fields?.[category]?.booleanValue === true)
+            .map(d => d.fields.pushToken.stringValue);
+
+        const tokens = [...new Set([...anonTokens, ...userTokens])];
+
+        let sent = 0, failed = 0;
+        for (const token of tokens) {
+            try {
+                const result = await sendFcmMessage(env, token,
+                    { title: String(title).slice(0, 100), body: String(msgBody || '').slice(0, 200) },
+                    { url: url || '/', category }
+                );
+                if (result.ok) sent++; else failed++;
+            } catch (e) { failed++; }
+        }
+
+        return jsonResponse({ ok: true, sent, failed, total: tokens.length });
     } catch (e) {
         return jsonResponse({ error: String(e) }, 502);
     }
