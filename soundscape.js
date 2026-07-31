@@ -97,6 +97,8 @@
 
     function attachSounds() {
         document.querySelectorAll('a, button, [role="button"], .bento-card').forEach(el => {
+            if (el.dataset.doniSoundBound) return; // already wired — avoid stacking duplicate listeners
+            el.dataset.doniSoundBound = '1';
             el.addEventListener('mouseenter', () => sfx.hover());
             el.addEventListener('click', () => sfx.click());
         });
