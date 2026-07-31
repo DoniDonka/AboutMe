@@ -171,25 +171,26 @@
         if (typeEl) { typeEl.addEventListener('change', toggleFields); toggleFields(); }
 
         publishBtn.addEventListener('click', () => {
+            console.log('[ContentEditor] Publish clicked');
             const title = (titleEl?.value || '').trim();
             const body = (bodyEl?.value || '').trim();
             const type = typeEl?.value || 'blog';
             const isShowcase = SHOWCASE_TYPES.includes(type);
 
             if (type === 'blog' && (!title || !body)) {
-                if (typeof UI !== 'undefined') UI.toast('Blog posts need a title and body', 'info');
+                alert('Blog posts need a title and body');
                 return;
             }
             if (type === 'changelog' && !body) {
-                if (typeof UI !== 'undefined') UI.toast('Add at least one change (one per line)', 'info');
+                alert('Add at least one change (one per line)');
                 return;
             }
             if (isShowcase && !title) {
-                if (typeof UI !== 'undefined') UI.toast('Showcase items need a title', 'info');
+                alert('Showcase items need a title');
                 return;
             }
             if (isShowcase && type !== 'video' && !imageEl?.value?.trim()) {
-                if (typeof UI !== 'undefined') UI.toast('Showcase builds/photos need an image URL', 'info');
+                alert('Showcase builds/photos need an image URL');
                 return;
             }
             publishBtn.disabled = true;
@@ -209,7 +210,7 @@
                 };
                 database.collection('posts').add(payload)
                     .then(async () => {
-                        if (typeof UI !== 'undefined') UI.toast('Published!', 'success');
+                        alert('Published!');
                         if (type === 'blog') {
                             try {
                                 const adminAuth = firebase.auth().currentUser;
@@ -232,13 +233,12 @@
                         if (imageEl) imageEl.value = ''; if (linkEl) linkEl.value = '';
                         loadPostList(database);
                     })
-                    .catch(err => { if (typeof UI !== 'undefined') UI.toast('Publish failed: ' + err.message, 'error'); else alert('Publish failed: ' + err.message); })
+                    .catch(err => { console.error('[ContentEditor] publish failed:', err); alert('Publish failed: ' + err.message); })
                     .finally(() => { publishBtn.disabled = false; publishBtn.textContent = 'Publish'; });
             }, 0, () => {
                 publishBtn.disabled = false;
                 publishBtn.textContent = 'Publish';
-                if (typeof UI !== 'undefined') UI.toast('Could not connect — check your connection and try again', 'error');
-                else alert('Could not connect — check your connection and try again');
+                alert('Could not connect — check your connection and try again');
             });
         });
 
