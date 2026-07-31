@@ -18,6 +18,12 @@ service cloud.firestore {
                      request.resource.data.verified == request.auth.token.email_verified);
     }
 
+    // Command palette activity log — internal/diagnostic, admin-only.
+    match /logs/{doc} {
+      allow read: if request.auth != null && request.auth.token.email == 'doni@admin.com';
+      allow create: if true;
+    }
+
     // Admin-only dashboard settings (site title/desc/status/tags/updates note)
     match /dashboard/settings {
       allow read: if true;

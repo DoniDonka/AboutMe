@@ -11,13 +11,18 @@
         return d.innerHTML;
     }
 
-    function waitForDb(cb, tries) {
+    function waitForDb(cb, tries, onTimeout) {
         tries = tries || 0;
         const ready = (typeof firebaseReady !== 'undefined' && firebaseReady) &&
                       (typeof db !== 'undefined' && db);
         if (ready) { cb(db); return; }
-        if (tries > 30) return;
-        setTimeout(() => waitForDb(cb, tries + 1), 200);
+        if (tries > 30) {
+            console.error('[ContentEditor] Firebase never became ready after 6s');
+            if (onTimeout) onTimeout();
+            else if (typeof UI !== 'undefined') UI.toast('Could not connect to the database — try refreshing the page', 'error');
+            return;
+        }
+        setTimeout(() => waitForDb(cb, tries + 1, onTimeout), 200);
     }
 
     // ---------- Reader-side rendering ----------
@@ -187,6 +192,9 @@
                 if (typeof UI !== 'undefined') UI.toast('Showcase builds/photos need an image URL', 'info');
                 return;
             }
+            publishBtn.disabled = true;
+            publishBtn.textContent = 'Publishing...';
+
             waitForDb((database) => {
                 const payload = {
                     type,
@@ -224,7 +232,13 @@
                         if (imageEl) imageEl.value = ''; if (linkEl) linkEl.value = '';
                         loadPostList(database);
                     })
-                    .catch(err => { if (typeof UI !== 'undefined') UI.toast('Publish failed: ' + err.message, 'error'); });
+                    .catch(err => { if (typeof UI !== 'undefined') UI.toast('Publish failed: ' + err.message, 'error'); else alert('Publish failed: ' + err.message); })
+                    .finally(() => { publishBtn.disabled = false; publishBtn.textContent = 'Publish'; });
+            }, 0, () => {
+                publishBtn.disabled = false;
+                publishBtn.textContent = 'Publish';
+                if (typeof UI !== 'undefined') UI.toast('Could not connect — check your connection and try again', 'error');
+                else alert('Could not connect — check your connection and try again');
             });
         });
 
