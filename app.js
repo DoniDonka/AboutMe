@@ -7,6 +7,7 @@
 // ============================================
 // FIREBASE CONFIGURATION
 // ============================================
+console.log('%c[DONI] app.js build: 2026-07-31', 'color:#22c55e;font-weight:bold;');
 const firebaseConfig = {
     apiKey: "AIzaSyBH3qWCy9jRT2HOrX8smaQA1XI5IUVtZlg",
     authDomain: "aboutme-8a339.firebaseapp.com",

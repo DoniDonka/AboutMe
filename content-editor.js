@@ -4,6 +4,7 @@
  * without touching code. Existing hardcoded posts/entries are untouched —
  * these render in a separate container above them.
  */
+console.log('%c[DONI] content-editor.js build: 2026-07-31', 'color:#22c55e;font-weight:bold;');
 (function () {
     function escapeHtml(str) {
         const d = document.createElement('div');
